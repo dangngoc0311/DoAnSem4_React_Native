@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1035089110591",
+    "project_id": "doansem4-a7344",
+    "storage_bucket": "doansem4-a7344.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1035089110591:android:1194c682142e54ba2f3a8a",
+        "android_client_info": {
+          "package_name": "com.doansem4reactnative"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1035089110591-7gu9qaka89ulf3fh7mcaecc2f14lbupi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD-8kiG8EbFIZKPGY68CthF9Inf1-ViWR0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1035089110591-7gu9qaka89ulf3fh7mcaecc2f14lbupi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
