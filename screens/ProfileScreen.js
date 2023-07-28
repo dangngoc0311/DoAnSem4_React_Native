@@ -62,7 +62,64 @@ const ProfileScreen = ({ navigation, route }) => {
     }, [navigation, loading]);
 
     const handleDelete = () => { };
-
+    const _handleCmt = (postId, cmt) => {
+        if (!cmt) {
+            return
+        }
+        console.log(cmt);
+        fetch(`http://10.0.2.2:3000/posts/cmt/${postId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: user._id, content: cmt }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log('Comment added successfully:', data);
+                setPosts((prevPosts) =>
+                    prevPosts.map((post) =>
+                        post.id === postId
+                            ? { ...post, comments: [...post.comments, data.comment] }
+                            : post
+                    )
+                );
+            })
+            .catch((error) => {
+                console.error('Error adding comment:', error);
+            });
+    }
+    const handleLike = async (postId) => {
+        try {
+            const response = await fetch(`http://10.0.2.2:3000/posts/${postId}/like`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId: user._id }),
+            });
+            if (response.ok) {
+                const updatedLiked = await response.json();
+                setPosts((prevPosts) =>
+                    prevPosts.map((post) =>
+                        post.id === postId
+                            ? {
+                                ...post,
+                                liked: updatedLiked.liked,
+                                likes: updatedLiked.liked
+                                    ? [...post.likes, user._id]
+                                    : post.likes.filter((userId) => userId !== user._id),
+                            }
+                            : post
+                    )
+                );
+            } else {
+                console.error('Failed to update post likes:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error liking/unliking post:', error);
+        }
+    };
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <ScrollView
@@ -120,7 +177,8 @@ const ProfileScreen = ({ navigation, route }) => {
                 </View>
 
                 {posts.map((item) => (
-                    <PostCard key={item.id} item={item} onDelete={handleDelete} />
+                    <PostCard key={item.id} item={item} onDelete={handleDelete} onLike={handleLike}
+                        onComment={_handleCmt} />
                 ))}
             </ScrollView>
         </SafeAreaView>

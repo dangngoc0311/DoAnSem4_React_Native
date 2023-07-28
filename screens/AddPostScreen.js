@@ -8,6 +8,7 @@ import ActionButton from 'react-native-action-button';
 import { AuthContext } from '../navigation/AuthProvider';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { windowWidth } from '../constants/config';
+import { useNavigation } from '@react-navigation/native';
 
 const AddPostScreen = () => {
     const { user, logout } = useContext(AuthContext);
@@ -16,6 +17,7 @@ const AddPostScreen = () => {
     const [transferred, setTransferred] = useState(0);
     const [post, setPost] = useState(null);
     const userId = user._id;
+    const navigation = useNavigation();
     const takePhotoFromCamera = () => {
         ImagePicker.openCamera({
             width: 1200,
@@ -64,24 +66,17 @@ const AddPostScreen = () => {
                 if (!res.ok) {
                     throw new Error('Network response was not ok');
                 }
-                setUploading(true);
+                // setUploading(true);
                 return res.json();
             })
-            .then(data => {
-                console.log(data)
-                if (data.error) {
-                    console.log('Error:', data.error);
-                } else {
-                    setImage(null);
-                    setPost(null)
-                    console.log(' successful:', data);
-                }
+            .then(newPost => {
+                console.log("new :" +newPost)
+                navigation.navigate('Home', { newPost });
             })
-            .catch(err => {
-                console.log('Error:', err);
+            .catch(error => {
+                console.error('Error adding post:', error);
             });
-    }
-
+    };
     const uploadImage = async () => {
         if (image == null) {
             return null;

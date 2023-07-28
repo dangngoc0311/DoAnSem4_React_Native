@@ -40,6 +40,10 @@ const HomeScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
+        const newPost = route.params?.newPost;
+        if (newPost) {
+            setPosts(prevPosts => [newPost, ...prevPosts]);
+        }
         fetchPosts();
         setDeleted(false);
     }, [deleted]);
@@ -63,53 +67,86 @@ const HomeScreen = ({ navigation }) => {
         );
     };
 
-    const deletePost = (postId) => {
+    const deletePost = async (postId) => {
         console.log('Current Post Id: ', postId);
 
-        firestore()
-            .collection('posts')
-            .doc(postId)
-            .get()
-            .then((documentSnapshot) => {
-                if (documentSnapshot.exists) {
-                    const { postImg } = documentSnapshot.data();
-
-                    if (postImg != null) {
-                        const storageRef = storage().refFromURL(postImg);
-                        const imageRef = storage().ref(storageRef.fullPath);
-
-                        imageRef
-                            .delete()
-                            .then(() => {
-                                console.log(`${postImg} has been deleted successfully.`);
-                                deleteFirestoreData(postId);
-                            })
-                            .catch((e) => {
-                                console.log('Error while deleting the image. ', e);
-                            });
-                        // If the post image is not available
-                    } else {
-                        deleteFirestoreData(postId);
-                    }
-                }
+        try {
+            const response = await fetch(`http://10.0.2.2:3000/posts/${postId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
             });
+
+            if (response.ok) {
+                console.log('Post deleted successfully');
+                setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+            } else {
+                console.error('Failed to delete post:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error deleting post:', error);
+        }
     };
 
-    const deleteFirestoreData = (postId) => {
-        firestore()
-            .collection('posts')
-            .doc(postId)
-            .delete()
-            .then(() => {
-                Alert.alert(
-                    'Post deleted!',
-                    'Your post has been deleted successfully!',
+    const _handleCmt = (postId,cmt) => {
+        if (!cmt) {
+            return
+        }
+        console.log(cmt);
+        fetch(`http://10.0.2.2:3000/posts/cmt/${postId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: user._id, content: cmt }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log('Comment added successfully:', data);
+                setPosts((prevPosts) =>
+                    prevPosts.map((post) =>
+                        post.id === postId
+                            ? { ...post, comments: [...post.comments, data.comment] }
+                            : post
+                    )
                 );
-                setDeleted(true);
             })
-            .catch((e) => console.log('Error deleting posst.', e));
+            .catch((error) => {
+                console.error('Error adding comment:', error);
+            });
+    }
+    const handleLike = async (postId) => {
+        try {
+            const response = await fetch(`http://10.0.2.2:3000/posts/${postId}/like`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId: user._id }),
+            });
+            if (response.ok) {
+                const updatedLiked = await response.json();
+                setPosts((prevPosts) =>
+                    prevPosts.map((post) =>
+                        post.id === postId
+                            ? {
+                                ...post,
+                                liked: updatedLiked.liked,
+                                likes: updatedLiked.liked
+                                    ? [...post.likes, user._id]
+                                    : post.likes.filter((userId) => userId !== user._id),
+                            }
+                            : post
+                    )
+                );
+            } else {
+                console.error('Failed to update post likes:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error liking/unliking post:', error);
+        }
     };
-
     const ListHeader = () => {
         return null;
     };
@@ -168,7 +205,8 @@ const HomeScreen = ({ navigation }) => {
                                     <PostCard
                                         item={item}
                                         onDelete={handleDelete}
-                                      
+                                        onLike={handleLike}
+                                        onComment={_handleCmt}
                                     />
                                 )}
                                 keyExtractor={(item) => item.id}
