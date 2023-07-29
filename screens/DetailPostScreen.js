@@ -14,10 +14,8 @@ import { windowWidth } from '../constants/config';
 import { InputField, AddImage, InputWrapper, StatusWrapper, SubmitBtn, SubmitBtnText } from '../constants/PostStyle';
 const DetailPostScreen = ({ route, navigation }) => {
     const { postId } = route.params;
-    const { user, logout } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
     const [item, setItem] = useState(null);
-    const [userData, setUserData] = useState(null);
-    const [liked, setLiked] = useState();
     const [comments, setComments] = useState([]);
     const [isOpenDialogCmt, setOpenDialogCmt] = useState(false)
     const [cmt, setCmt] = useState('')
@@ -31,10 +29,23 @@ const DetailPostScreen = ({ route, navigation }) => {
                 },
                 body: JSON.stringify({ userId: user._id }),
             });
+
             if (response.ok) {
                 const updatedLiked = await response.json();
-                item.liked = updatedLiked.liked;
-                setLiked(updatedLiked.liked);
+                const hasLiked = item.likes.includes(user._id);
+                if (updatedLiked.liked && !hasLiked) {
+                    setItem((prevItem) => ({
+                        ...prevItem,
+                        liked: true,
+                        likes: [...prevItem.likes, user._id],
+                    }));
+                } else if (!updatedLiked.liked && hasLiked) {
+                    setItem((prevItem) => ({
+                        ...prevItem,
+                        liked: false,
+                        likes: prevItem.likes.filter((userId) => userId !== user._id),
+                    }));
+                }
             } else {
                 console.error('Failed to update post likes:', response.statusText);
             }
@@ -65,8 +76,8 @@ const DetailPostScreen = ({ route, navigation }) => {
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
-            setItem(data);
             setComments(data.comments);
+            setItem(data);
         } catch (error) {
             console.error('Error fetching post detail:', error);
         }
@@ -104,7 +115,7 @@ const DetailPostScreen = ({ route, navigation }) => {
 
             if (response.ok) {
                 console.log('Post deleted successfully');
-                navigation.navigate('Home');
+                navigation.navigate('Social App', { deleteId: postId });
             } else {
                 console.error('Failed to delete post:', response.statusText);
             }
@@ -114,7 +125,6 @@ const DetailPostScreen = ({ route, navigation }) => {
     };
     const _handleCmt = () => {
         if (!cmt) {
-            Alert.alert('Opps', 'Vui lòng điền bình luận!!!')
             return
         }
         fetch(`http://10.0.2.2:3000/posts/cmt/${postId}`, {
@@ -126,26 +136,49 @@ const DetailPostScreen = ({ route, navigation }) => {
         })
             .then((response) => response.json())
             .then((data) => {
-                console.log('Comment added successfully:', data);
+                console.log('Comment added successfully:', data.comment);
                 setCmt('');
                 setOpenDialogCmt(false)
-                setComments((prevComments) => [...prevComments, data.comment]);
+                setComments((prevComments) => [data.comment, ...prevComments]);
+                setItem((prevItem) => ({ ...prevItem, comments: [data.comment, ...prevItem.comments] }));
             })
             .catch((error) => {
                 console.error('Error adding comment:', error);
             });
     }
+    const handleDelCmt = async (commentId) => {
+        try {
+            const response = await fetch(`http://10.0.2.2:3000/posts/cmt/${postId}/${commentId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                console.log('Comment deleted successfully');
+                setComments((prevComments) => prevComments.filter((comment) => comment._id !== commentId));
+                setItem((prevItem) => {
+                    const updatedComments = prevItem.comments.filter((comment) => comment._id !== commentId);
+                    return { ...prevItem, comments: updatedComments };
+                });
+            } else {
+                console.error('Failed to delete comment:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error deleting comment:', error);
+        }
+    };
+
     useEffect(() => {
         fetchPostDetail();
+        console.log(comments);
     }, []);
-    useEffect(() => {
-        console.log(comments); 
-    }, [comments]);
     if (!item) {
         return <ActivityIndicator size="large" color="#000" />;
     }
     return (
-        <Card >
+        <Card style={{ flex: 1 }}>
             <UserInfo>
                 <UserImg
                     source={{
@@ -179,9 +212,9 @@ const DetailPostScreen = ({ route, navigation }) => {
             <InteractionWrapper>
                 <Interaction active={item.liked}>
                     <TouchableOpacity onPress={handleLike}>
-                        <Ionicons name={likeIcon} size={25} color={likeIconColor} />
+                        <Ionicons name={item.liked ? 'heart' : 'heart-outline'} size={25} color={item.liked ? '#2e64e5' : '#333'} />
                     </TouchableOpacity>
-                    <InteractionText active={item.liked}>{item.likes === 1 ? '1 ' : item.likes > 1 ? `${item.likes} ` : ''} Like</InteractionText>
+                    <InteractionText active={item.liked}>{item.likes?.length === 1 ? '1 ' : `${item.likes?.length} `} Like</InteractionText>
                 </Interaction>
 
                 <Interaction>
@@ -189,7 +222,7 @@ const DetailPostScreen = ({ route, navigation }) => {
                     <TouchableOpacity onPress={() => {
                         setOpenDialogCmt(true)
                     }}>
-                        <InteractionText> {item.comments.length === 1 ? '1 ' : `${item.comments.length} `}Comments</InteractionText>
+                        <InteractionText> {item.comments?.length === 1 ? '1 ' : `${item.comments?.length} `}Comments</InteractionText>
 
                     </TouchableOpacity>
                 </Interaction>
@@ -221,19 +254,19 @@ const DetailPostScreen = ({ route, navigation }) => {
                     </Dialog.Container>
                 ) : null}
             </View>
-            <View>
-               
-                {/* <FlatList
+            <View style={{ flex: 1 }}>
+
+                <FlatList
                     data={comments}
-                    renderItem={({ comment }) => ( // Change 'item' to 'comment' or any other desired variable name
+                    renderItem={({ item: comment }) => ( // Change 'item' to 'comment' or any other desired variable name
                         <View style={styles.UserInfo}>
                             <Image
-                                style={styles.userAvatar}
+                                style={styles.UserImg}
                                 source={{
                                     uri: comment
                                         ? comment.userAvatar ||
+                                        'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg' :
                                         'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
-                                        : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
                                 }}
                             />
                             <View style={styles.UserInfoText}>
@@ -241,10 +274,13 @@ const DetailPostScreen = ({ route, navigation }) => {
                                 <PostTime>{moment(comment.cmtDate).fromNow()}</PostTime>
                             </View>
                             <PostText>{comment.content}</PostText>
+                            {user._id == comment.userId ? (
+                                <Ionicons onPress={() => handleDelCmt(comment._id)} name="trash-bin-outline" size={25} />
+                            ) : null}
                         </View>
                     )}
-                    keyExtractor={(comment) => comment.userId + comment.content} 
-                /> */}
+                    keyExtractor={(comment) => comment._id.toString()}
+                />
             </View>
         </Card>
     );
@@ -253,7 +289,6 @@ const DetailPostScreen = ({ route, navigation }) => {
 export default DetailPostScreen;
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         backgroundColor: '#DDDDDD',
         justifyContent: 'center',
         alignContent: 'center',
@@ -265,7 +300,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         backgroundColor: 'white',
         height: 500,
-        marginVertical: 5,
+        marginVertical: 6,
     },
 
     viewHeader: {
@@ -328,19 +363,19 @@ const styles = StyleSheet.create({
         color: '#670D95',
         tintColor: '#670D95'
     },
-    UserInfo : {
+    UserInfo: {
         flexDirection: 'row',
-    justifyContent: 'flex-start',
-padding: 15,
+        justifyContent: 'flex-start',
+        padding: 15,
     },
-    UserImg:{
+    UserImg: {
         width: 30,
         heightt: 30,
         borderRadius: 15,
     },
-    UserInfoText:{
-        flexDirection:'column',
-        justifyContent:'center',
-        marginLeft:10
+    UserInfoText: {
+        flexDirection: 'column',
+        justifyContent: 'center',
+        marginLeft: 10
     }
 })

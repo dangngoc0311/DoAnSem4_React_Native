@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 
 import Onboarding from 'react-native-onboarding-swiper';
+import { windowWidth } from '../constants/config';
 
 
 const Dots = ({ selected }) => {
@@ -60,19 +61,19 @@ const OnboardingScreen = ({ navigation }) => {
             pages={[
                 {
                     backgroundColor: '#a6e4d0',
-                    image: <Image source={require('../assets/onboarding1.png')} />,
+                    image: <Image source={require('../assets/onboarding1.png')} width={150} />,
                     title: 'Connect to the World',
                     subtitle: 'A New Way To Connect With The World',
                 },
                 {
                     backgroundColor: '#fdeb93',
-                    image: <Image source={require('../assets/onboarding2.png')} />,
+                    image: <Image source={require('../assets/onboarding2.png')} width={150} />,
                     title: 'Share Your Favorites',
                     subtitle: 'Share Your Thoughts With Similar Kind of People',
                 },
                 {
                     backgroundColor: '#e9bcbe',
-                    image: <Image source={require('../assets/onboarding3.png')} />,
+                    image: <Image source={require('../assets/onboarding3.png')} width={150} />,
                     title: 'Become The Star',
                     subtitle: "Let The Spot Light Capture You",
                 },
@@ -87,6 +88,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        width:windowWidth,
     },
 });

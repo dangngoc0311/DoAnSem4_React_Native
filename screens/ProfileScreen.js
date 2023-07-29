@@ -12,9 +12,8 @@ const ProfileScreen = ({ navigation, route }) => {
 
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [deleted, setDeleted] = useState(false);
     const [userData, setUserData] = useState(null);
-
+    const [follow, setFollowing] = useState(false);
     const fetchPosts = async () => {
         try {
             const list = [];
@@ -44,17 +43,17 @@ const ProfileScreen = ({ navigation, route }) => {
     };
 
     const getUser = async () => {
-        fetch(`http://10.0.2.2:3000/users/${route.params ? route.params.userId : user._id}`)
+        fetch(`http://10.0.2.2:3000/users/${route.params ? route.params.userId : user._id}?loggedInUserId=${user._id}`)
             .then((response) => response.json())
             .then((data) => {
                 console.log(data);
                 setUserData(data);
+                setFollowing(data.followed);
             })
             .catch((error) => {
                 console.error('Error fetching user data:', error);
             });
-    }
-
+    };
     useEffect(() => {
         getUser();
         fetchPosts();
@@ -62,6 +61,90 @@ const ProfileScreen = ({ navigation, route }) => {
     }, [navigation, loading]);
 
     const handleDelete = () => { };
+    const _handleCmt = (postId, cmt) => {
+        if (!cmt) {
+            return
+        }
+        console.log(cmt);
+        fetch(`http://10.0.2.2:3000/posts/cmt/${postId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ userId: user._id, content: cmt }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log('Comment added successfully:', data);
+                setPosts((prevPosts) =>
+                    prevPosts.map((post) =>
+                        post.id === postId
+                            ? { ...post, comments: [...post.comments, data.comment] }
+                            : post
+                    )
+                );
+            })
+            .catch((error) => {
+                console.error('Error adding comment:', error);
+            });
+    }
+    const handleLike = async (postId) => {
+        try {
+            const response = await fetch(`http://10.0.2.2:3000/posts/${postId}/like`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId: user._id }),
+            });
+            if (response.ok) {
+                const updatedLiked = await response.json();
+                setPosts((prevPosts) =>
+                    prevPosts.map((post) =>
+                        post.id === postId
+                            ? {
+                                ...post,
+                                liked: updatedLiked.liked,
+                                likes: updatedLiked.liked
+                                    ? [...post.likes, user._id]
+                                    : post.likes.filter((userId) => userId !== user._id),
+                            }
+                            : post
+                    )
+                );
+            } else {
+                console.error('Failed to update post likes:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error liking/unliking post:', error);
+        }
+    };
+    const handleFollowUnfollow = async () => {
+        try {
+            const response = await fetch(`http://10.0.2.2:3000/users/${userData._id}/follow?loggedInUserId=${user._id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId: user._id }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log(data.followed)
+                setFollowing(data.followed);
+                setUserData((prevUserData) => ({
+                    ...prevUserData,
+                    followers: data.followers,
+                    followings: data.followings,
+                }));
+            } else {
+                console.error('Failed to follow/unfollow user:', response.statusText);
+            }
+        } catch (error) {
+            console.error('Error following/unfollowing user:', error);
+        }
+    };
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -84,8 +167,8 @@ const ProfileScreen = ({ navigation, route }) => {
                             <TouchableOpacity style={styles.userBtn} onPress={() => { }}>
                                 <Text style={styles.userBtnTxt}>Message</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.userBtn} onPress={() => { }}>
-                                <Text style={styles.userBtnTxt}>Follow</Text>
+                            <TouchableOpacity style={styles.userBtn} onPress={handleFollowUnfollow}>
+                                <Text style={styles.userBtnTxt}>{follow ? 'Unfollow' : 'Follow'}</Text>
                             </TouchableOpacity>
                         </>
                     ) : (
@@ -110,17 +193,18 @@ const ProfileScreen = ({ navigation, route }) => {
                         <Text style={styles.userInfoSubTitle}>Posts</Text>
                     </View>
                     <View style={styles.userInfoItem}>
-                        <Text style={styles.userInfoTitle}>10,000</Text>
+                        <Text style={styles.userInfoTitle}> {userData && userData.followers?.length === 0 ? '0 ' : `${userData?.followers?.length || 0} `}</Text>
                         <Text style={styles.userInfoSubTitle}>Followers</Text>
                     </View>
                     <View style={styles.userInfoItem}>
-                        <Text style={styles.userInfoTitle}>100</Text>
+                        <Text style={styles.userInfoTitle}>{userData && userData.followings?.length === 0 ? '0 ' : `${userData?.followings?.length || 0} `}</Text>
                         <Text style={styles.userInfoSubTitle}>Following</Text>
                     </View>
                 </View>
 
                 {posts.map((item) => (
-                    <PostCard key={item.id} item={item} onDelete={handleDelete} />
+                    <PostCard key={item.id} item={item} onDelete={handleDelete} onLike={handleLike}
+                        onComment={_handleCmt} />
                 ))}
             </ScrollView>
         </SafeAreaView>

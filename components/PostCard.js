@@ -1,61 +1,24 @@
 import React from 'react';
-
-import firestore from '@react-native-firebase/firestore';
 import { useContext } from 'react';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { AuthContext } from '../navigation/AuthProvider';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { Card, Divider, Interaction, InteractionText, InteractionWrapper, PostText, PostTime, UserImg, UserInfo, UserInfoText, UserName } from '../constants/FeedStyle';
-import { TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
 import ProgressiveImage from './ProgressiveImage';
 import moment from 'moment/moment';
 import { useNavigation } from '@react-navigation/native';
-const PostCard = ({ item, onDelete, onPress }) => {
+import { windowWidth } from '../constants/config';
+import Dialog from "react-native-dialog";
+import { InputField } from '../constants/PostStyle';
+const PostCard = ({ item, onDelete, onPress, onLike, onComment }) => {
     const { user, logout } = useContext(AuthContext);
     const [userData, setUserData] = useState(null);
-    const [liked, setLiked] = useState(item.liked);
+    const [isOpenDialogCmt, setOpenDialogCmt] = useState(false)
+    const [cmt, setCmt] = useState('')
     const navigation = useNavigation();
-    likeIcon = item.liked ? 'heart' : 'heart-outline';
-    likeIconColor = item.liked ? '#2e64e5' : '#333';
-
-    if (item.likes.length == 1) {
-        likeText = '1 Like';
-    } else if (item.likes.length > 1) {
-        likeText = item.likes.length + ' Likes';
-    } else {
-        likeText = 'Like';
-    }
-
-    if (item.comments.length == 1) {
-        commentText = '1 Comment';
-    } else if (item.comments.length > 1) {
-        commentText = item.comments.length + ' Comments';
-    } else {
-        commentText = 'Comment';
-    }
-    const handleLike = async () => {
-        try {
-            const postId = item.id;
-            const response = await fetch(`http://10.0.2.2:3000/posts/${postId}/like`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ userId: user._id }),
-            });
-            if (response.ok) {
-                const updatedLiked = await response.json();
-                item.liked = updatedLiked.liked;
-                setLiked(updatedLiked.liked);
-            } else {
-                console.error('Failed to update post likes:', response.statusText);
-            }
-        } catch (error) {
-            console.error('Error liking/unliking post:', error);
-        }
-    };
-
+   
     const getUser = async () => {
         fetch(`http://10.0.2.2:3000/users/${route.params ? route.params.userId : user._id}`)
             .then((response) => response.json())
@@ -69,30 +32,34 @@ const PostCard = ({ item, onDelete, onPress }) => {
     const handlePostPress = (postId) => {
         navigation.navigate('DetailPost', { postId: postId, navigation });
     };
-
+    
     useEffect(() => {
         getUser();
     }, []);
     return (
         <Card key={item.id} >
-            <UserInfo>
-                <UserImg
-                    source={{
-                        uri: item
-                            ? item.userImg ||
-                            'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
-                            : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
-                    }}
-                />
-                <UserInfoText>
-                    <TouchableOpacity onPress={onPress}>
-                        <UserName>
-                            {item ? item.userName || 'User' : 'User'}
-                        </UserName>
-                    </TouchableOpacity>
-                    <PostTime>{moment(item.postTime).fromNow()}</PostTime>
-                </UserInfoText>
-            </UserInfo>
+            <TouchableOpacity onPress={() =>
+                navigation.navigate('HomeProfile', { userId: item.userId })
+            }>
+                <UserInfo>
+                    <UserImg
+                        source={{
+                            uri: item
+                                ? item.userImg ||
+                                'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
+                                : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
+                        }}
+                    />
+                    <UserInfoText>
+                        <TouchableOpacity onPress={onPress}>
+                            <UserName>
+                                {item ? item.userName || 'User' : 'User'}
+                            </UserName>
+                        </TouchableOpacity>
+                        <PostTime>{moment(item.postTime).fromNow()}</PostTime>
+                    </UserInfoText>
+                </UserInfo>
+            </TouchableOpacity>
             <TouchableOpacity onPress={() => handlePostPress(item.id)}>
                 <PostText>{item.post}</PostText>
                 {item.postImg != null ? (
@@ -111,14 +78,18 @@ const PostCard = ({ item, onDelete, onPress }) => {
             </TouchableOpacity>
             <InteractionWrapper>
                 <Interaction active={item.liked}>
-                    <TouchableOpacity onPress={handleLike}>
-                        <Ionicons name={likeIcon} size={25} color={likeIconColor} />
+                    <TouchableOpacity onPress={() => onLike(item.id)}>
+                        <Ionicons name={item.liked ? 'heart' : 'heart-outline'} size={25} color={item.liked ? '#2e64e5' : '#333'} />
                     </TouchableOpacity>
-                    <InteractionText active={item.liked}>{item.likes === 1 ? '1 ' : item.likes > 1 ? `${item.likes} ` : ''} Like</InteractionText>
+                    <InteractionText active={item.liked}>{item.likes?.length === 1 ? '1 ' : `${item.likes?.length} `} Like</InteractionText>
                 </Interaction>
                 <Interaction>
                     <Ionicons name="chatbubble-ellipses-outline" size={25} />
-                    <InteractionText> {item.comments.length === 1 ? '1 ' : `${item.comments.length} `}Comments</InteractionText>
+                    <TouchableOpacity onPress={() => {
+                        setOpenDialogCmt(true)
+                    }}>
+                        <InteractionText> {item.comments?.length === 0 ? '0 ' : `${item.comments?.length} `} Comments</InteractionText>
+                    </TouchableOpacity>
                 </Interaction>
                 {user._id == item.userId ? (
                     <Interaction onPress={() => onDelete(item.id)}>
@@ -126,9 +97,43 @@ const PostCard = ({ item, onDelete, onPress }) => {
                     </Interaction>
                 ) : null}
             </InteractionWrapper>
-            
+            <View style={styles.container}>
+                {(isOpenDialogCmt) ? (
+                    <Dialog.Container visible={true}>
+                        <Dialog.Title>Bình luận bài viết</Dialog.Title>
+                        <InputField
+                            placeholder="Vui lòng nhập bình luận ?"
+                            multiline
+                            style={{
+                                height: 60,
+                                paddingHorizontal: 8,
+                                fontSize: 14,
+                                color: 'grey'
+                            }}
+                            value={cmt}
+                            onChangeText={(cmt) => setCmt(cmt)}
+                        />
+                        <Dialog.Button label="Hủy" onPress={() => setOpenDialogCmt(false)} />
+                        <Dialog.Button label="Bình luận"
+                            onPress={() => {
+                                setOpenDialogCmt(false);
+                setCmt('');
+                                onComment(item.id, cmt);
+                            }} />
+                    </Dialog.Container>
+                ) : null}
+            </View>
         </Card>
     );
 };
 
 export default PostCard;
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#DDDDDD',
+        justifyContent: 'center',
+        alignContent: 'center',
+        width: windowWidth,
+    },
+})

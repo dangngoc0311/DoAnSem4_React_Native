@@ -111,7 +111,7 @@ const MessageStack = ({ navigation }) => (
 );
 
 const ProfileStack = ({ navigation }) => (
-    <Stack.Navigator>
+    <Stack.Navigator >
         <Stack.Screen
             name="Profile"
             component={ProfileScreen}
@@ -195,6 +195,7 @@ const AppStack = () => {
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="person-outline" color={color} size={size} />
                     ),
+                    headerShown:false,
                 }}
             />
         </Tab.Navigator>
