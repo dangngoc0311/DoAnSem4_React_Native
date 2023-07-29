@@ -65,6 +65,7 @@ export const AuthProvider = ({ children }) => {
                 },
                 logout: async () => {
                     try {
+                        setUser(null);
                         await AsyncStorage.removeItem('user');
                         console.log('User data removed from AsyncStorage.');
                     } catch (e) {

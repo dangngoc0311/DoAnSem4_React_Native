@@ -33,15 +33,16 @@ const DetailPostScreen = ({ route, navigation }) => {
             if (response.ok) {
                 const updatedLiked = await response.json();
                 const hasLiked = item.likes.includes(user._id);
-
                 if (updatedLiked.liked && !hasLiked) {
                     setItem((prevItem) => ({
                         ...prevItem,
+                        liked: true,
                         likes: [...prevItem.likes, user._id],
                     }));
                 } else if (!updatedLiked.liked && hasLiked) {
                     setItem((prevItem) => ({
                         ...prevItem,
+                        liked: false,
                         likes: prevItem.likes.filter((userId) => userId !== user._id),
                     }));
                 }
@@ -114,7 +115,7 @@ const DetailPostScreen = ({ route, navigation }) => {
 
             if (response.ok) {
                 console.log('Post deleted successfully');
-                navigation.navigate('Home');
+                navigation.navigate('Social App', { deleteId: postId });
             } else {
                 console.error('Failed to delete post:', response.statusText);
             }

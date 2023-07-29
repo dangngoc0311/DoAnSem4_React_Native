@@ -46,32 +46,52 @@ const AddPostScreen = () => {
     }
 
     const submitPost = async () => {
-        const postImg = "";
+        if (!post && image == null) {
+            console.error('Error: Either content or image is required for a post.');
+            return;
+        }
+
+        let postImg = null;
         if (image != null) {
             postImg = 'http://10.0.2.2:3000/public/uploads/' + await uploadImage();
         }
+
         console.log("Anh : " + postImg);
+
+        const requestBody = {
+            userId,
+        };
+
+        if (postImg !== null) {
+            requestBody.postImg = postImg;
+        }else{
+            requestBody.postImg = "";
+        }
+
+        if (post) {
+            requestBody.post = post;
+        }else{
+            requestBody.post = "";
+        }
+
         fetch('http://10.0.2.2:3000/posts', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                userId,
-                post,
-                postImg,
-            })
+            body: JSON.stringify(requestBody)
         })
             .then(res => {
                 if (!res.ok) {
                     throw new Error('Network response was not ok');
                 }
-                // setUploading(true);
                 return res.json();
             })
-            .then(newPost => {
-                console.log("new :" +newPost)
-                navigation.navigate('Home', { newPost });
+            .then(data => {
+                setPost(null);
+                setImage(null);
+                console.log(data.post);
+                navigation.navigate('Social App');
             })
             .catch(error => {
                 console.error('Error adding post:', error);

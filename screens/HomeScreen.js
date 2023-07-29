@@ -8,14 +8,14 @@ import storage from '@react-native-firebase/storage';
 import firestore from '@react-native-firebase/firestore';
 import { AuthContext } from '../navigation/AuthProvider';
 import { useContext } from 'react';
-
+import { useIsFocused } from '@react-navigation/native';
 
 const HomeScreen = ({ navigation }) => {
     const [posts, setPosts] = useState();
     const [loading, setLoading] = useState(true);
     const [deleted, setDeleted] = useState(false);
     const { user } = useContext(AuthContext);
-    
+    const isFocused = useIsFocused();
     const fetchPosts = async () => {
         try {
             const response =  await fetch('http://10.0.2.2:3000/listPost', {
@@ -40,13 +40,12 @@ const HomeScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
-        const newPost = route.params?.newPost;
-        if (newPost) {
-            setPosts(prevPosts => [newPost, ...prevPosts]);
+       
+        if (isFocused) {
+            fetchPosts();
         }
-        fetchPosts();
         setDeleted(false);
-    }, [deleted]);
+    }, [isFocused]);
 
     const handleDelete = (postId) => {
         Alert.alert(
