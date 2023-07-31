@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Card, Container, MessageText, PostTime, TextSection, UserImg, UserImgWrapper, UserInfo, UserInfoText, UserName } from '../constants/MessageStyles';
-import { FlatList, StyleSheet } from 'react-native';
+import { FlatList, Keyboard, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { AuthContext } from '../navigation/AuthProvider';
 const Messages = [
     {
         id: '1',
@@ -45,10 +46,28 @@ const Messages = [
 ];
 
 const MessageScreen = ({ navigation }) => {
+    const [messages, setMessages] = useState([]);
+    const { user } = useContext(AuthContext);
+
+    const fetchGroupChats = async () => {
+        try {
+            const response = await fetch(`http://10.0.2.2:3000/user_group_chats/${user._id}`); 
+            const data = await response.json();
+            setMessages(data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    useEffect(() => {
+        fetchGroupChats();
+    }, []);
+
     return (
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+
         <Container>
             <FlatList
-                data={Messages}
+                data={messages}
                 keyExtractor={item => item.id}
                 renderItem={({ item }) => (
                     <Card onPress={() => navigation.navigate('Chat', { userName: item.userName })}>
@@ -68,6 +87,8 @@ const MessageScreen = ({ navigation }) => {
                 )}
             />
         </Container>
+
+        </TouchableWithoutFeedback>
     );
 };
 

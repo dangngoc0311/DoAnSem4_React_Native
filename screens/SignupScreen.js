@@ -5,14 +5,16 @@ import { AuthContext } from "../navigation/AuthProvider";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FormInput from "../components/FormInput";
 import FormButton from "../components/FormButton";
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import { COLORS } from '../constants/config';
 
 const SignupScreen = ({ navigation }) => {
     const [email, setEmail] = useState();
     const [password, setPassword] = useState();
     const [fname, setFname] = useState();
     const [lname, setLname] = useState();
-    const [confirmPassword, setConfirmPassword] = useState();
 
+    const [isPasswordShown, setIsPasswordShown] = useState(true);
     const { register } = useContext(AuthContext);
 
     return (
@@ -25,15 +27,15 @@ const SignupScreen = ({ navigation }) => {
             <FormInput
                 labelValue={fname}
                 onChangeText={(userFname) => setFname(userFname)}
-                placeholderText="Email"
+                placeholderText="First name"
                 iconType="user"
-                keyboardType="email-address"
+                keyboardType="text"
                 autoCapitalize="none"
                 autoCorrect={false}
             /><FormInput
                 labelValue={lname}
                 onChangeText={(userLname) => setLname(userLname)}
-                placeholderText="Email"
+                placeholderText="Last name"
                 iconType="user"
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -42,46 +44,41 @@ const SignupScreen = ({ navigation }) => {
                 labelValue={email}
                 onChangeText={(userEmail) => setEmail(userEmail)}
                 placeholderText="Email"
-                iconType="user"
+                iconType="mail"
                 autoCapitalize="none"
                 autoCorrect={false}
             />
 
-            <FormInput
-                labelValue={password}
-                onChangeText={(userPassword) => setPassword(userPassword)}
-                placeholderText="Password"
-                iconType="lock"
-                secureTextEntry={true}
-            />
+            <View>
+                <FormInput
+                    labelValue={password}
+                    onChangeText={(userPassword) => setPassword(userPassword)}
+                    placeholderText="Password"
+                    iconType="lock"
+                    secureTextEntry={isPasswordShown}
+                />
+                <TouchableOpacity
+                    onPress={() => setIsPasswordShown(!isPasswordShown)}
+                    style={{
+                        position: "absolute",
+                        right: 8,
+                        bottom: 20
+                    }}
+                >
+                    {
+                        isPasswordShown == true ? (
+                            <Ionicons name="eye-off" size={24} color={COLORS.black} />
+                        ) : (
+                            <Ionicons name="eye" color={COLORS.black} size={24} />
+                        )
+                    }
 
-            <FormInput
-                labelValue={confirmPassword}
-                onChangeText={(userPassword) => setConfirmPassword(userPassword)}
-                placeholderText="Confirm Password"
-                iconType="lock"
-                secureTextEntry={true}
-            />
-
+                </TouchableOpacity>
+            </View>
             <FormButton
                 buttonTitle="Sign Up"
                 onPress={() => register(fname,lname,email, password)}
             />
-
-            {/* <View style={styles.textPrivate}>
-                <Text style={styles.color_textPrivate}>
-                    By registering, you confirm that you accept our{' '}
-                </Text>
-                <TouchableOpacity onPress={() => alert('Terms Clicked!')}>
-                    <Text style={[styles.color_textPrivate, { color: '#e88832' }]}>
-                        Terms of service
-                    </Text>
-                </TouchableOpacity>
-                <Text style={styles.color_textPrivate}> and </Text>
-                <Text style={[styles.color_textPrivate, { color: '#e88832' }]}>
-                    Privacy Policy
-                </Text>
-            </View> */}
             <TouchableOpacity
                 style={styles.navButton}
                 onPress={() => navigation.navigate('Login')}>

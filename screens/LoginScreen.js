@@ -6,11 +6,13 @@ import FormInput from '../components/FormInput';
 import FormButton from '../components/FormButton';
 import SocialButton from '../components/SocialButton';
 import { AuthContext } from '../navigation/AuthProvider';
+import { COLORS } from '../constants/config';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
 const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState();
     const [password, setPassword] = useState();
-
+    const [isPasswordShown, setIsPasswordShown] = useState(true);
     const { login, fbLogin } = useContext(AuthContext);
 
     return (
@@ -25,19 +27,37 @@ const LoginScreen = ({ navigation }) => {
                 labelValue={email}
                 onChangeText={(userEmail) => setEmail(userEmail)}
                 placeholderText="Email"
-                iconType="user"
+                iconType="mail"
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
             />
+            <View>
+                <FormInput
+                    labelValue={password} 
+                    onChangeText={(userPassword) => setPassword(userPassword)}
+                    placeholderText="Password"
+                    iconType="lock"
+                    secureTextEntry={isPasswordShown}
+                />
+                <TouchableOpacity
+                    onPress={() => setIsPasswordShown(!isPasswordShown)}
+                    style={{
+                        position: "absolute",
+                        right: 8,
+                        bottom: 20
+                    }}
+                >
+                    {
+                        isPasswordShown == true ? (
+                            <Ionicons name="eye-off" size={24} color={COLORS.black} />
+                        ) : (
+                            <Ionicons name="eye" color={COLORS.black} size={24} />
+                        )
+                    }
 
-            <FormInput
-                labelValue={password}
-                onChangeText={(userPassword) => setPassword(userPassword)}
-                placeholderText="Password"
-                iconType="lock"
-                secureTextEntry={true}
-            />
+                </TouchableOpacity>
+            </View>
 
             <FormButton
                 buttonTitle="Sign In"

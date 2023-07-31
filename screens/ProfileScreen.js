@@ -145,7 +145,14 @@ const ProfileScreen = ({ navigation, route }) => {
             console.error('Error following/unfollowing user:', error);
         }
     };
+    const handleChatNavigation = () => {
+        // Get the 'userName' and 'userId' from the user data
+        const userName = userData.fname + ' ' + userData.lname;
+        const userId = userData._id;
 
+        // Navigate to 'ChatScreen' with the parameters
+        navigation.navigate('Chat', { userName, userId });
+    };
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <ScrollView
@@ -164,7 +171,7 @@ const ProfileScreen = ({ navigation, route }) => {
                 <View style={styles.userBtnWrapper}>
                     {route.params ? (
                         <>
-                            <TouchableOpacity style={styles.userBtn} onPress={() => { }}>
+                            <TouchableOpacity style={styles.userBtn} onPress={handleChatNavigation}>
                                 <Text style={styles.userBtnTxt}>Message</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.userBtn} onPress={handleFollowUnfollow}>
