@@ -6,32 +6,25 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import FontAwesome from 'react-native-vector-icons/FontAwesome';
 import { StyleSheet, View } from 'react-native';
 import { useEffect } from 'react';
+import { useRoute } from '@react-navigation/native';
+import { AuthContext } from '../navigation/AuthProvider';
 const ChatScreen = () => {
     const [messages, setMessages] = useState([]);
-
+    const { user } = useContext(AuthContext);
+    const fetchGroupChats = async () => {
+        console.log("sjhjh : " + 1);
+        try {
+            const response = await fetch(`http:/10.0.2.2:3000/messages/${user._id}/${1}`);
+            const data = await response.json();
+            setMessages(data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
     useEffect(() => {
-        setMessages([
-            {
-                _id: 1,
-                text: 'Hello developer',
-                createdAt: new Date(),
-                user: {
-                    _id: 2,
-                    name: 'React Native',
-                    avatar: 'https://placeimg.com/140/140/any',
-                },
-            },
-            {
-                _id: 2,
-                text: 'Hello world',
-                createdAt: new Date(),
-                user: {
-                    _id: 1,
-                    name: 'React Native',
-                    avatar: 'https://placeimg.com/140/140/any',
-                },
-            },
-        ]);
+        fetchGroupChats();
+    }, []);
+    useEffect(() => {
     }, []);
 
     const onSend = useCallback((messages = []) => {

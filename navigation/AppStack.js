@@ -13,6 +13,8 @@ import EditProfileScreen from "../screens/EditProfileScreen";
 import { Image, StyleSheet, View } from 'react-native';
 import MessageScreen from '../screens/MessageScreen';
 import DetailPostScreen from '../screens/DetailPostScreen';
+import SearchHeader from '../components/SearchHeader';
+import { windowWidth } from '../constants/config';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -98,7 +100,9 @@ const FeedStack = ({ navigation }) => (
 
 const MessageStack = ({ navigation }) => (
     <Stack.Navigator>
-        <Stack.Screen name="Messages" component={MessageScreen} />
+        <Stack.Screen name="Messages" component={MessageScreen} options={{
+            header: (props) => <SearchHeader {...props} />
+             }} />
         <Stack.Screen
             name="Chat"
             component={ChatScreen}
@@ -174,6 +178,7 @@ const AppStack = () => {
                 component={MessageStack}
                 options={({ route }) => ({
                     tabBarVisible: getTabBarVisibility(route),
+                    headerShown: false,
                     // Or Hide tabbar when push!
                     // https://github.com/react-navigation/react-navigation/issues/7677
                     // tabBarVisible: route.state && route.state.index === 0,
