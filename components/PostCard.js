@@ -5,14 +5,15 @@ import { AuthContext } from '../navigation/AuthProvider';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { Card, Divider, Interaction, InteractionText, InteractionWrapper, PostText, PostTime, UserImg, UserInfo, UserInfoText, UserName } from '../constants/FeedStyle';
-import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ProgressiveImage from './ProgressiveImage';
 import moment from 'moment/moment';
 import { useNavigation } from '@react-navigation/native';
 import { windowWidth } from '../constants/config';
 import Dialog from "react-native-dialog";
 import { InputField } from '../constants/PostStyle';
-const PostCard = ({ item, onDelete, onPress, onLike, onComment }) => {
+import Menu, { MenuItem, MenuDivider, MenuTrigger, MenuOptions, MenuOption } from 'react-native-popup-menu';
+const PostCard = ({ item, onDelete, onPress, onLike, onComment, onUpdate }) => {
     const { user, logout } = useContext(AuthContext);
     const [userData, setUserData] = useState(null);
     const [isOpenDialogCmt, setOpenDialogCmt] = useState(false)
@@ -32,34 +33,59 @@ const PostCard = ({ item, onDelete, onPress, onLike, onComment }) => {
     const handlePostPress = (postId) => {
         navigation.navigate('DetailPost', { postId: postId, navigation });
     };
-    
+
     useEffect(() => {
         getUser();
     }, []);
     return (
         <Card key={item.id} >
-            <TouchableOpacity onPress={() =>
-                navigation.navigate('HomeProfile', { userId: item.userId })
-            }>
-                <UserInfo>
-                    <UserImg
-                        source={{
-                            uri: item
-                                ? item.userImg ||
-                                'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
-                                : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
-                        }}
-                    />
-                    <UserInfoText>
-                        <TouchableOpacity onPress={onPress}>
-                            <UserName>
-                                {item ? item.userName || 'User' : 'User'}
-                            </UserName>
-                        </TouchableOpacity>
-                        <PostTime>{moment(item.postTime).fromNow()}</PostTime>
-                    </UserInfoText>
-                </UserInfo>
-            </TouchableOpacity>
+           
+            <View style={{ flexDirection:'row',alignItems:'center',justifyContent:'space-between' }}>
+                <View>
+                    <TouchableOpacity onPress={() =>
+                        navigation.navigate('HomeProfile', { userId: item.userId })
+                    }>
+                        <UserInfo>
+                            <UserImg
+                                source={{
+                                    uri: item
+                                        ? item.userImg ||
+                                        'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
+                                        : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
+                                }}
+                            />
+                            <UserInfoText>
+                                <TouchableOpacity onPress={onPress}>
+                                    <UserName>
+                                        {item ? item.userName || 'User' : 'User'}
+                                    </UserName>
+                                </TouchableOpacity>
+                                <PostTime>{moment(item.postTime).fromNow()}</PostTime>
+                            </UserInfoText>
+                        </UserInfo>
+                    </TouchableOpacity>
+                </View>
+                <View>
+                    {user._id == item.userId ? (
+                         <Menu>
+                            <MenuTrigger customStyles={{ triggerText: { fontSize: 20 } }}>
+                                <Ionicons name="ellipsis-vertical" size={22} />
+                            </MenuTrigger>
+                        <MenuOptions >
+                                <MenuOption onSelect={() => onUpdate(item.id)} style={{ alignItems: 'center', flexDirection: 'row' }} >
+                                    <Ionicons name="create-outline" size={18} color={'blue'} />
+                                    <Text style={{ color: 'blue', paddingLeft: 10 }}>Edit</Text>
+                            </MenuOption>
+                                <MenuOption onSelect={() => onDelete(item.id)} style={{alignItems:'center',flexDirection:'row'}}>
+                                <Ionicons name="trash-bin-outline" size={18} color={'red'} />
+                                <Text style={{ color: 'red',paddingLeft:10 }}>Delete</Text>
+                            </MenuOption>
+                        </MenuOptions>
+                    </Menu>
+                    ) : null}
+                   
+                </View>
+           </View>
             <TouchableOpacity onPress={() => handlePostPress(item.id)}>
                 <PostText>{item.post}</PostText>
                 {item.postImg != null ? (
@@ -91,11 +117,6 @@ const PostCard = ({ item, onDelete, onPress, onLike, onComment }) => {
                         <InteractionText> {item.comments?.length === 0 ? '0 ' : `${item.comments?.length} `} Comments</InteractionText>
                     </TouchableOpacity>
                 </Interaction>
-                {user._id == item.userId ? (
-                    <Interaction onPress={() => onDelete(item.id)}>
-                        <Ionicons name="trash-bin-outline" size={25} />
-                    </Interaction>
-                ) : null}
             </InteractionWrapper>
             <View style={styles.container}>
                 {(isOpenDialogCmt) ? (

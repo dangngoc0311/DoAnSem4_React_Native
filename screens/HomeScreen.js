@@ -149,6 +149,9 @@ const HomeScreen = ({ navigation }) => {
     const ListHeader = () => {
         return null;
     };
+    const handleUpdate = (postId) => {
+        navigation.navigate('EditPost', { postId });
+    };
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} >
             {loading ? (
@@ -206,6 +209,7 @@ const HomeScreen = ({ navigation }) => {
                                         onDelete={handleDelete}
                                         onLike={handleLike}
                                         onComment={_handleCmt}
+                                        onUpdate={handleUpdate}
                                     />
                                 )}
                                 keyExtractor={(item) => item.id}
