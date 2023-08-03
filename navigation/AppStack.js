@@ -15,6 +15,7 @@ import MessageScreen from '../screens/MessageScreen';
 import DetailPostScreen from '../screens/DetailPostScreen';
 import SearchHeader from '../components/SearchHeader';
 import { windowWidth } from '../constants/config';
+import EditPostScreen from '../screens/EditPostScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -75,6 +76,25 @@ const FeedStack = ({ navigation }) => (
         <Stack.Screen
             name="DetailPost"
             component={DetailPostScreen}
+        />
+        <Stack.Screen
+            name="EditPost"
+            component={EditPostScreen}
+            options={{
+                title: '',
+                headerTitleAlign: 'center',
+                headerStyle: {
+                    backgroundColor: '#FFF9F9',
+                    shadowColor: '#FF999015',
+                    elevation: 0,
+                },
+                headerBackTitleVisible: false,
+                headerBackImage: () => (
+                    <View style={{ marginLeft: 15 }}>
+                        <Ionicons name="arrow-back" size={25} color="#FF9990" />
+                    </View>
+                ),
+            }}
         />
         <Stack.Screen
             name="HomeProfile"
