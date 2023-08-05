@@ -149,9 +149,15 @@ const ProfileScreen = ({ navigation, route }) => {
         // Get the 'userName' and 'userId' from the user data
         const userName = userData.fname + ' ' + userData.lname;
         const userId = userData._id;
-
+        var item = {
+            _id: userData._id,
+            fname: userData.fname,
+            lname: userData.lname,
+            userImg: userData.userImg
+        }
+        console.log(item);
         // Navigate to 'ChatScreen' with the parameters
-        navigation.navigate('Chat', { userName, userId });
+        navigation.navigate('Chat', item);
     };
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>

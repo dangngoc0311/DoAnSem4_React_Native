@@ -15,7 +15,6 @@ import MessageScreen from '../screens/MessageScreen';
 import DetailPostScreen from '../screens/DetailPostScreen';
 import SearchHeader from '../components/SearchHeader';
 import { windowWidth } from '../constants/config';
-import EditPostScreen from '../screens/EditPostScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -37,7 +36,7 @@ const FeedStack = ({ navigation }) => (
                     elevation: 0,
                 },
                 headerRight: () => (
-                    <View style={{ marginRight: 10 }}> 
+                    <View style={{ marginRight: 10 }}>
                         <FontAwesome5.Button
                             name="plus"
                             size={22}
@@ -47,7 +46,7 @@ const FeedStack = ({ navigation }) => (
                         />
                     </View>
                 ),
-                headerLeft:()=>(
+                headerLeft: () => (
                     <View style={{ marginRight: 15 }}>
                         <Image source={require('../assets/logo1.png')} style={styles.logo} />
                     </View>
@@ -122,12 +121,12 @@ const MessageStack = ({ navigation }) => (
     <Stack.Navigator>
         <Stack.Screen name="Messages" component={MessageScreen} options={{
             header: (props) => <SearchHeader {...props} />
-             }} />
+        }} />
         <Stack.Screen
             name="Chat"
             component={ChatScreen}
             options={({ route }) => ({
-                title: route.params.userName,
+                title: route.params.fname + " " + route.params.lname,
                 headerBackTitleVisible: false,
             })}
         />
@@ -182,7 +181,7 @@ const AppStack = () => {
                 component={FeedStack}
                 options={({ route }) => ({
                     tabBarLabel: 'Home',
-                    headerShown:false,
+                    headerShown: false,
                     // tabBarVisible: route.state && route.state.index === 0,
                     tabBarIcon: ({ color, size }) => (
                         <MaterialCommunityIcons
@@ -220,7 +219,7 @@ const AppStack = () => {
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="person-outline" color={color} size={size} />
                     ),
-                    headerShown:false,
+                    headerShown: false,
                 }}
             />
         </Tab.Navigator>
