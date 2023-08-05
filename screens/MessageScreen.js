@@ -1,94 +1,209 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Card, Container, MessageText, PostTime, TextSection, UserImg, UserImgWrapper, UserInfo, UserInfoText, UserName } from '../constants/MessageStyles';
-import { FlatList, Keyboard, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import { FlatList, Keyboard, SafeAreaView, ScrollView, StyleSheet, TouchableWithoutFeedback, View } from 'react-native';
 import { AuthContext } from '../navigation/AuthProvider';
-const Messages = [
-    {
-        id: '1',
-        userName: 'Jenny Doe',
-        userImg: require('../assets/users/user-3.jpg'),
-        messageTime: '4 mins ago',
-        messageText:
-            'Hey there, this is my test for a post of my social app in React Native.',
-    },
-    {
-        id: '2',
-        userName: 'John Doe',
-        userImg: require('../assets/users/user-1.jpg'),
-        messageTime: '2 hours ago',
-        messageText:
-            'Hey there, this is my test for a post of my social app in React Native.',
-    },
-    {
-        id: '3',
-        userName: 'Ken William',
-        userImg: require('../assets/users/user-4.jpg'),
-        messageTime: '1 hours ago',
-        messageText:
-            'Hey there, this is my test for a post of my social app in React Native.',
-    },
-    {
-        id: '4',
-        userName: 'Selina Paul',
-        userImg: require('../assets/users/user-6.jpg'),
-        messageTime: '1 day ago',
-        messageText:
-            'Hey there, this is my test for a post of my social app in React Native.',
-    },
-    {
-        id: '5',
-        userName: 'Christy Alex',
-        userImg: require('../assets/users/user-7.jpg'),
-        messageTime: '2 days ago',
-        messageText:
-            'Hey there, this is my test for a post of my social app in React Native.',
-    },
-];
+import { TouchableOpacity } from 'react-native';
+import moment from 'moment';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { useIsFocused } from '@react-navigation/native';
 
 const MessageScreen = ({ navigation }) => {
     const [messages, setMessages] = useState([]);
     const { user } = useContext(AuthContext);
-
+    const [loading, setLoading] = useState(true);
+    const isFocused = useIsFocused();
     const fetchGroupChats = async () => {
         try {
-            const response = await fetch(`http://10.0.2.2:3000/user_group_chats/${user._id}`); 
+            const response = await fetch(`http://10.0.2.2:3000/user_group_chats/${user._id}`);
             const data = await response.json();
-            setMessages(data);
+            var list = [];
+            data.forEach(element => {
+                console.log("- ele : " + JSON.stringify(element));
+
+                var avatarUrl = element.userImage;
+                var messageText = "";
+
+                if (element.lastMessage.senderId == user._id) {
+                    if (element.lastMessage.content.startsWith("http://10.0.2.2:3000/public/uploads/")) {
+                        messageText = "Bạn đã gửi 1 ảnh";
+                    } else {
+                        messageText = element.lastMessage.content;
+                    }
+                } else {
+                    if (element.lastMessage.content.startsWith("http://10.0.2.2:3000/public/uploads/")) {
+                        messageText = "Bạn đã nhận 1 ảnh";
+                    } else {
+                        messageText = element.lastMessage.content;
+                    }
+                }
+
+                var dataItem = {
+                    id: element._id,
+                    _id: element.userId,
+                    fname: element.fname,
+                    lname: element.lname,
+                    userImg: avatarUrl,
+                    messageTime: element.lastMessage.createdAt,
+                    messageText: messageText,
+                };
+
+                list.push(dataItem);
+            });
+            setMessages(list);
+            if (loading) {
+                setLoading(false);
+            }
         } catch (error) {
             console.error(error);
         }
     };
+
+
     useEffect(() => {
         fetchGroupChats();
-    }, []);
+        if (isFocused) {
+            fetchGroupChats();
+        }
+    }, [isFocused]);
 
+    const chat = (item) => {
+        navigation.navigate("Chat", item)
+    };
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} >
+            {loading ? (
+                <ScrollView
+                    style={{ flex: 1, paddingLeft: 20, paddingRight: 20 }}>
+                    <SkeletonPlaceholder style={{ width: '100%', paddingTop: 10, marginBottom: 15, paddingBottom: 10, borderBottomColor: '#cccccc', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15, marginTop: 10 }}>
+                            <View style={{ width: 50, height: 50, borderRadius: 50 }} />
+                            <View style={{ marginLeft: 20 }}>
+                                <View
+                                    style={{ marginBottom: 6, width: 80, height: 20, borderRadius: 4 }}
+                                />
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                            </View>
+                        </View>
+                    </SkeletonPlaceholder>
+                    <SkeletonPlaceholder style={{ width: '100%', paddingTop: 10, paddingBottom: 10, marginBottom: 15, borderBottomColor: '#cccccc', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+                            <View style={{ width: 50, height: 50, borderRadius: 50 }} />
+                            <View style={{ marginLeft: 20 }}>
+                                <View
+                                    style={{ marginBottom: 6, width: 80, height: 20, borderRadius: 4 }}
+                                />
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                            </View>
+                        </View>
+                    </SkeletonPlaceholder>
+                    <SkeletonPlaceholder style={{ width: '100%', paddingTop: 10, paddingBottom: 10, marginBottom: 15, borderBottomColor: '#cccccc', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+                            <View style={{ width: 50, height: 50, borderRadius: 50 }} />
+                            <View style={{ marginLeft: 20 }}>
+                                <View
+                                    style={{ marginBottom: 6, width: 80, height: 20, borderRadius: 4 }}
+                                />
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                            </View>
+                        </View>
+                    </SkeletonPlaceholder>
+                    <SkeletonPlaceholder style={{ width: '100%', paddingTop: 10, paddingBottom: 10, marginBottom: 15, borderBottomColor: '#cccccc', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+                            <View style={{ width: 50, height: 50, borderRadius: 50 }} />
+                            <View style={{ marginLeft: 20 }}>
+                                <View
+                                    style={{ marginBottom: 6, width: 80, height: 20, borderRadius: 4 }}
+                                />
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                            </View>
+                        </View>
+                    </SkeletonPlaceholder>
+                    <SkeletonPlaceholder style={{ width: '100%', paddingTop: 10, paddingBottom: 10, marginBottom: 15, borderBottomColor: '#cccccc', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+                            <View style={{ width: 50, height: 50, borderRadius: 50 }} />
+                            <View style={{ marginLeft: 20 }}>
+                                <View
+                                    style={{ marginBottom: 6, width: 80, height: 20, borderRadius: 4 }}
+                                />
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                            </View>
+                        </View>
+                    </SkeletonPlaceholder>
+                    <SkeletonPlaceholder style={{ width: '100%', paddingTop: 10, paddingBottom: 10, marginBottom: 15, borderBottomColor: '#cccccc', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+                            <View style={{ width: 50, height: 50, borderRadius: 50 }} />
+                            <View style={{ marginLeft: 20 }}>
+                                <View
+                                    style={{ marginBottom: 6, width: 80, height: 20, borderRadius: 4 }}
+                                />
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                            </View>
+                        </View>
+                    </SkeletonPlaceholder><SkeletonPlaceholder style={{ width: '100%', paddingTop: 10, paddingBottom: 10, marginBottom: 15, borderBottomColor: '#cccccc', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+                            <View style={{ width: 50, height: 50, borderRadius: 50 }} />
+                            <View style={{ marginLeft: 20 }}>
+                                <View
+                                    style={{ marginBottom: 6, width: 80, height: 20, borderRadius: 4 }}
+                                />
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                            </View>
+                        </View>
+                    </SkeletonPlaceholder>
+                    <SkeletonPlaceholder style={{ width: '100%', paddingTop: 10, paddingBottom: 10, marginBottom: 15, borderBottomColor: '#cccccc', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 15 }}>
+                            <View style={{ width: 50, height: 50, borderRadius: 50 }} />
+                            <View style={{ marginLeft: 20 }}>
+                                <View
+                                    style={{ marginBottom: 6, width: 80, height: 20, borderRadius: 4 }}
+                                />
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                            </View>
+                        </View>
+                    </SkeletonPlaceholder>
+                    <SkeletonPlaceholder style={{ width: '100%', paddingTop: 10, paddingBottom: 10, marginBottom: 15, borderBottomColor: '#cccccc', borderBottomWidth: 1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                            <View style={{ width: 50, height: 50, borderRadius: 50 }} />
+                            <View style={{ marginLeft: 20 }}>
+                                <View
+                                    style={{ marginBottom: 6, width: 80, height: 20, borderRadius: 4 }}
+                                />
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                            </View>
+                        </View>
+                    </SkeletonPlaceholder>
+                </ScrollView>
+            ) : (
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss} >
+                    <Container>
+                        <FlatList
+                            data={messages}
+                            keyExtractor={item => item._id}
+                            renderItem={({ item }) => (
+                                <Card>
+                                    <TouchableOpacity onPress={() => chat(item)} activeOpacity={0.7}>
+                                        <UserInfo>
+                                            <UserImgWrapper>
+                                                <UserImg source={{ uri: item.userImg }} />
+                                            </UserImgWrapper>
+                                            <TextSection>
+                                                <UserInfoText>
+                                                    <UserName>{item.fname + " " + item.lname}</UserName>
+                                                    <PostTime>{moment(item.messageTime).fromNow()}</PostTime>
+                                                </UserInfoText>
+                                                <MessageText>{item.messageText}</MessageText>
+                                            </TextSection>
+                                        </UserInfo>
+                                    </TouchableOpacity>
+                                </Card>
+                            )}
+                        />
+                    </Container>
 
-        <Container>
-            <FlatList
-                data={messages}
-                keyExtractor={item => item.id}
-                renderItem={({ item }) => (
-                    <Card onPress={() => navigation.navigate('Chat', { userName: item.userName })}>
-                        <UserInfo>
-                            <UserImgWrapper>
-                                <UserImg source={item.userImg} />
-                            </UserImgWrapper>
-                            <TextSection>
-                                <UserInfoText>
-                                    <UserName>{item.userName}</UserName>
-                                    <PostTime>{item.messageTime}</PostTime>
-                                </UserInfoText>
-                                <MessageText>{item.messageText}</MessageText>
-                            </TextSection>
-                        </UserInfo>
-                    </Card>
-                )}
-            />
-        </Container>
+                </TouchableWithoutFeedback >
+            )}
 
-        </TouchableWithoutFeedback>
+        </SafeAreaView>
     );
 };
 
