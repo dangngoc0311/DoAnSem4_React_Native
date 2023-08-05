@@ -15,6 +15,7 @@ import MessageScreen from '../screens/MessageScreen';
 import DetailPostScreen from '../screens/DetailPostScreen';
 import SearchHeader from '../components/SearchHeader';
 import { windowWidth } from '../constants/config';
+import EditPostScreen from '../screens/EditPostScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();

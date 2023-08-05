@@ -9,6 +9,7 @@ import firestore from '@react-native-firebase/firestore';
 import { AuthContext } from '../navigation/AuthProvider';
 import { useContext } from 'react';
 import { useIsFocused } from '@react-navigation/native';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 const HomeScreen = ({ navigation }) => {
     const [posts, setPosts] = useState();
@@ -18,10 +19,10 @@ const HomeScreen = ({ navigation }) => {
     const isFocused = useIsFocused();
     const fetchPosts = async () => {
         try {
-            const response =  await fetch('http://10.0.2.2:3000/listPost', {
-                method: 'POST', 
+            const response = await fetch('http://10.0.2.2:3000/listPost', {
+                method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json', 
+                    'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ userId: user._id })
             });
@@ -40,7 +41,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     useEffect(() => {
-       
+
         if (isFocused) {
             fetchPosts();
         }
@@ -79,6 +80,12 @@ const HomeScreen = ({ navigation }) => {
 
             if (response.ok) {
                 console.log('Post deleted successfully');
+                Toast.show({
+                    type: 'success',
+                    text1: 'Post deleted successfully !',
+                    visibilityTime: 2000,
+                });
+                console.log(postId);
                 setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
             } else {
                 console.error('Failed to delete post:', response.statusText);
@@ -88,7 +95,7 @@ const HomeScreen = ({ navigation }) => {
         }
     };
 
-    const _handleCmt = (postId,cmt) => {
+    const _handleCmt = (postId, cmt) => {
         if (!cmt) {
             return
         }
@@ -200,26 +207,25 @@ const HomeScreen = ({ navigation }) => {
                     </SkeletonPlaceholder>
                 </ScrollView>
             ) : (
-                <View style={{paddingVertical:3,paddingHorizontal:6}}>
-                            <FlatList
-                                data={posts}
-                                renderItem={({ item }) => (
-                                    <PostCard
-                                        item={item}
-                                        onDelete={handleDelete}
-                                        onLike={handleLike}
-                                        onComment={_handleCmt}
-                                        onUpdate={handleUpdate}
-                                    />
-                                )}
-                                keyExtractor={(item) => item.id}
-                                ListHeaderComponent={ListHeader}
-                                ListFooterComponent={ListHeader}
-                                showsVerticalScrollIndicator={false}
+                <View style={{ paddingVertical: 3, paddingHorizontal: 6 }}>
+                    <FlatList
+                        data={posts}
+                        renderItem={({ item }) => (
+                            <PostCard
+                                item={item}
+                                onDelete={handleDelete}
+                                onLike={handleLike}
+                                onComment={_handleCmt}
+                                onUpdate={handleUpdate}
                             />
-                      
+                        )}
+                        keyExtractor={(item) => item.id}
+                        ListHeaderComponent={ListHeader}
+                        ListFooterComponent={ListHeader}
+                        showsVerticalScrollIndicator={false}
+                    />
+
                 </View>
-                  
             )}
         </SafeAreaView>
     );

@@ -13,39 +13,70 @@ const LoginScreen = ({ navigation }) => {
     const [email, setEmail] = useState();
     const [password, setPassword] = useState();
     const [isPasswordShown, setIsPasswordShown] = useState(true);
-    const { login, fbLogin } = useContext(AuthContext);
+    const { login } = useContext(AuthContext);
+    const [submitted, setSubmitted] = useState(false);
 
+    const [passwordError, setPasswordError] = useState('');
+
+   
+    const validatePassword = (password) => {
+        return password.length >= 6;
+    };
+    const handleValidation = () => {
+        if (!password) {
+            setPasswordError('Password is required');
+        } else if (!validatePassword(password)) {
+            setPasswordError('Password must be at least 6 characters long');
+        } else {
+            setPasswordError('');
+        }
+    };
+    const handleSignIn = () => {
+        setSubmitted(true);
+        if (!email || !password) {
+            return;
+        } 
+            login(email, password);
+    };
     return (
+
         <ScrollView contentContainerStyle={styles.container}>
             <Image
                 source={require('../assets/logo1.png')}
                 style={styles.logo}
             />
-            <Text style={styles.text}>Social App</Text>
-
-            <FormInput
-                labelValue={email}
-                onChangeText={(userEmail) => setEmail(userEmail)}
-                placeholderText="Email"
-                iconType="mail"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-            />
+            <Text style={styles.text}>Sign in</Text>
             <View>
                 <FormInput
-                    labelValue={password} 
+                    labelValue={email}
+                    onChangeText={(userEmail) => setEmail(userEmail)}
+                    placeholderText="Email"
+                    iconType="mail"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    autoCorrect={false} onBlur={handleValidation}
+                />
+               
+            </View>
+            {submitted && !email && (
+                <Text style={styles.errorText}>Email is required</Text>
+            )}
+            <View style={{ flexDirection: 'row' }}>
+                <FormInput 
+                    labelValue={password}
                     onChangeText={(userPassword) => setPassword(userPassword)}
                     placeholderText="Password"
                     iconType="lock"
-                    secureTextEntry={isPasswordShown}
+                    secureTextEntry={isPasswordShown} onBlur={handleValidation}
                 />
                 <TouchableOpacity
                     onPress={() => setIsPasswordShown(!isPasswordShown)}
                     style={{
-                        position: "absolute",
-                        right: 8,
-                        bottom: 20
+                        marginLeft: 8, 
+                        justifyContent: 'center', 
+                        position:'absolute',
+                        right:10,
+                        top:15
                     }}
                 >
                     {
@@ -55,13 +86,17 @@ const LoginScreen = ({ navigation }) => {
                             <Ionicons name="eye" color={COLORS.black} size={24} />
                         )
                     }
-
                 </TouchableOpacity>
             </View>
-
+            {submitted && !password && (
+                <Text style={styles.errorText}>Password is required</Text>
+            )}
+            {passwordError.length > 0 && (
+                    <Text style={{ color: 'red',textAlign:'left' }}>{passwordError}</Text>
+                )}
             <FormButton
                 buttonTitle="Sign In"
-                onPress={() => login(email, password)}
+                onPress={handleSignIn}
             />
 
             <TouchableOpacity style={styles.forgotButton} onPress={() => { }}>
@@ -85,7 +120,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,
-        paddingTop: 50
+        paddingTop: 20
     },
     logo: {
         height: 150,
@@ -94,7 +129,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontFamily: 'Kufam-SemiBoldItalic',
-        fontSize: 28,
+        fontSize: 26,
         marginBottom: 10,
         color: '#051d5f',
     },
@@ -109,5 +144,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#FF9990',
         fontFamily: 'Lato-Regular',
-    },
+    }, errorText: {
+        color: 'red'
+    }
 });

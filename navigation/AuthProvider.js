@@ -3,6 +3,7 @@ import { createContext } from "react";
 import { useState } from "react";
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
@@ -28,13 +29,27 @@ export const AuthProvider = ({ children }) => {
                         .then(async data => {
                             if (data.error) {
                                 console.log('Error:', data.error);
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Error',
+                                    visibilityTime: 500,
+                                });
                             } else {
                                 await AsyncStorage.setItem('user', JSON.stringify(data));
                                 setUser(data);
+                                Toast.show({
+                                    type: 'success',
+                                    text1: 'Login successfully!',
+                                    visibilityTime: 500, 
+                                });
                             }
                         })
                         .catch(err => {
-                            console.log('Error:', err);
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Error',
+                                visibilityTime: 500,
+                            });
                         });
                 },
                 register: async (fname,lname,email, password) => {
@@ -55,11 +70,26 @@ export const AuthProvider = ({ children }) => {
                             console.log(data)
                             if (data.error) {
                                 console.log('Error:', data.error);
+                                Toast.show({
+                                    type: 'error',
+                                    text1: 'Error',
+                                    visibilityTime: 500,
+                                });
                             } else {
                                 console.log('Registration successful:', data);
+                                Toast.show({
+                                    type: 'success',
+                                    text1: 'Register successfully!',
+                                    visibilityTime: 500,
+                                });
                             }
                         })
                         .catch(err => {
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Error',
+                                visibilityTime: 500,
+                            });
                             console.log('Error:', err);
                         });
                 },
@@ -70,6 +100,11 @@ export const AuthProvider = ({ children }) => {
                         console.log('User data removed from AsyncStorage.');
                     } catch (e) {
                         console.log('Error during logout:', e);
+                        Toast.show({
+                            type: 'error',
+                            text1: 'Error during logout',
+                            visibilityTime: 500,
+                        });
                     }
                 },
             }}>

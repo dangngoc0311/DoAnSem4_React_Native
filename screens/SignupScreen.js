@@ -13,17 +13,26 @@ const SignupScreen = ({ navigation }) => {
     const [password, setPassword] = useState();
     const [fname, setFname] = useState();
     const [lname, setLname] = useState();
-
+    const [passwordError, setPasswordError] = useState('');
+    const [submitted, setSubmitted] = useState(false);
     const [isPasswordShown, setIsPasswordShown] = useState(true);
     const { register } = useContext(AuthContext);
-
+    const handleValidation = () => {
+        if (password.length < 6) {
+            setPasswordError('Password must be at least 6 characters long');
+        } else {
+            setPasswordError(''); 
+        }
+    };
+    const handleSubmit = () => {
+        setSubmitted(true);
+        if (!fname || !lname || !email || !password) {
+            return;
+        } 
+        register(fname, lname, email, password);
+    };
     return (
         <View style={styles.container}>
-            <Image
-                source={require('../assets/logo1.png')}
-                style={styles.logo}
-            />
-            <Text style={styles.text}>Create an account</Text>
             <FormInput
                 labelValue={fname}
                 onChangeText={(userFname) => setFname(userFname)}
@@ -32,37 +41,48 @@ const SignupScreen = ({ navigation }) => {
                 keyboardType="text"
                 autoCapitalize="none"
                 autoCorrect={false}
-            /><FormInput
+            />{submitted && !fname && (
+                <Text style={styles.errorText}>First name is required</Text>
+            )}
+
+            <FormInput
                 labelValue={lname}
-                onChangeText={(userLname) => setLname(userLname)}
+                onChangeText={(lname) => setLname(lname)}
                 placeholderText="Last name"
                 iconType="user"
                 autoCapitalize="none"
                 autoCorrect={false}
             />
+            {submitted && !lname && (
+                <Text style={styles.errorText}>Last name is required</Text>
+            )}
             <FormInput
                 labelValue={email}
-                onChangeText={(userEmail) => setEmail(userEmail)}
+                onChangeText={(email) => setEmail(email)}
                 placeholderText="Email"
                 iconType="mail"
                 autoCapitalize="none"
                 autoCorrect={false}
             />
-
-            <View>
+            {submitted && !email && (
+                <Text style={styles.errorText}>Email is required</Text>
+            )}
+            <View style={{ flexDirection: 'row' }}>
                 <FormInput
                     labelValue={password}
-                    onChangeText={(userPassword) => setPassword(userPassword)}
+                    onChangeText={(password) => setPassword(password)}
                     placeholderText="Password"
                     iconType="lock"
-                    secureTextEntry={isPasswordShown}
+                    secureTextEntry={isPasswordShown} onBlur={handleValidation}
                 />
                 <TouchableOpacity
                     onPress={() => setIsPasswordShown(!isPasswordShown)}
                     style={{
-                        position: "absolute",
-                        right: 8,
-                        bottom: 20
+                        marginLeft: 8,
+                        justifyContent: 'center',
+                        position: 'absolute',
+                        right: 10,
+                        top: 15
                     }}
                 >
                     {
@@ -72,12 +92,17 @@ const SignupScreen = ({ navigation }) => {
                             <Ionicons name="eye" color={COLORS.black} size={24} />
                         )
                     }
-
                 </TouchableOpacity>
             </View>
+            {submitted && !password && (
+                <Text style={styles.errorText}>Password is required</Text>
+            )}
+            {passwordError.length > 0 && (
+                <Text style={{ color: 'red', textAlign: 'left' }}>{passwordError}</Text>
+            )}
             <FormButton
                 buttonTitle="Sign Up"
-                onPress={() => register(fname,lname,email, password)}
+                onPress={handleSubmit}
             />
             <TouchableOpacity
                 style={styles.navButton}
@@ -100,7 +125,7 @@ const styles = StyleSheet.create({
     },
     text: {
         fontFamily: 'Kufam-SemiBoldItalic',
-        fontSize: 28,
+        fontSize: 24,
         marginBottom: 10,
         color: '#051d5f',
     },
@@ -128,8 +153,10 @@ const styles = StyleSheet.create({
         color: 'grey',
     },
     logo: {
-        height: 130,
-        width: 130,
+        height: 120,
+        width: 120,
         resizeMode: 'cover',
-    },
+    }, errorText:{
+        color:'red'
+    }
 });

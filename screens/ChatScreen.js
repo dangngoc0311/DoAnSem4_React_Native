@@ -18,6 +18,16 @@ const ChatScreen = ({ route }) => {
     const { user } = useContext(AuthContext);
     const user2 = route.params;
 
+    var imgUrl = null;
+    const fetchGroupChats = async () => {
+        try {
+            const response = await fetch(`http:/10.0.2.2:3000/messages/${user._id}/${1}`);
+            const data = await response.json();
+            setMessages(data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
     const fetchMessages = async () => {
         try {
             console.log(user._id)
@@ -120,11 +130,9 @@ const ChatScreen = ({ route }) => {
                 userId2: user2._id,
                 content: messages[0].text
             }
-            // handlePostRequest(formdata)
-            setMessages((previousMessages) =>
-                GiftedChat.append(previousMessages, messages),
-            );
-
+            // setMessages((previousMessages) =>
+            //     GiftedChat.append(previousMessages, messages),
+            // );
 
             const originalString = img;
             const subString = 'file:///storage/emulated/0/Android/data/com.doansem4reactnative/files/Pictures/';
@@ -157,7 +165,15 @@ const ChatScreen = ({ route }) => {
                 console.error('Error uploading image:', e);
             }
             handlePostRequest(formdata2)
+            handlePostRequest(formdata)
+            const me = messages.map((message) => {
+                return {
+                    ...message,
+                    _id: Math.round(Math.random() * 1000000),
+                }
+            });
             const messageWithImage = messages.map((message) => {
+                message.text = "";
                 if (img) {
                     return {
                         ...message,
@@ -169,6 +185,7 @@ const ChatScreen = ({ route }) => {
             });
 
             setMessages((previousMessages) => GiftedChat.append(previousMessages, messageWithImage));
+            setMessages((previousMessages) => GiftedChat.append(previousMessages, me));
             setSelectedImg(null);
             img = null;
 

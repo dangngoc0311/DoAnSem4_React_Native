@@ -12,7 +12,10 @@ import { useEffect } from 'react';
 import Dialog from "react-native-dialog";
 import { windowWidth } from '../constants/config';
 import { InputField, AddImage, InputWrapper, StatusWrapper, SubmitBtn, SubmitBtnText } from '../constants/PostStyle';
-const DetailPostScreen = ({ route, navigation }) => {
+import Menu, { MenuItem, MenuDivider, MenuTrigger, MenuOptions, MenuOption } from 'react-native-popup-menu';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
+
+const DetailPostScreen = ({ route, navigation, onPress }) => {
     const { postId } = route.params;
     const { user } = useContext(AuthContext);
     const [item, setItem] = useState(null);
@@ -115,11 +118,21 @@ const DetailPostScreen = ({ route, navigation }) => {
 
             if (response.ok) {
                 console.log('Post deleted successfully');
+                Toast.show({
+                    type: 'success',
+                    text1: 'Post deleted successfully!',
+                    visibilityTime: 1000,
+                });
                 navigation.navigate('Social App', { deleteId: postId });
             } else {
                 console.error('Failed to delete post:', response.statusText);
             }
         } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error deleting post',
+                visibilityTime: 1000,
+            });
             console.error('Error deleting post:', error);
         }
     };
@@ -157,19 +170,36 @@ const DetailPostScreen = ({ route, navigation }) => {
 
             if (response.ok) {
                 console.log('Comment deleted successfully');
+                Toast.show({
+                    type: 'success',
+                    text1: 'Comment deleted successfully!',
+                    visibilityTime: 1000,
+                });
                 setComments((prevComments) => prevComments.filter((comment) => comment._id !== commentId));
                 setItem((prevItem) => {
                     const updatedComments = prevItem.comments.filter((comment) => comment._id !== commentId);
                     return { ...prevItem, comments: updatedComments };
                 });
             } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Failed to delete comment',
+                    visibilityTime: 1000,
+                });
                 console.error('Failed to delete comment:', response.statusText);
             }
         } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Network response was not ok',
+                visibilityTime: 1000,
+            });
             console.error('Error deleting comment:', error);
         }
     };
-
+    const handleUpdate = (postId) => {
+        navigation.navigate('EditPost', { postId });
+    };
     useEffect(() => {
         fetchPostDetail();
         console.log(comments);
@@ -179,22 +209,53 @@ const DetailPostScreen = ({ route, navigation }) => {
     }
     return (
         <Card style={{ flex: 1 }}>
-            <UserInfo>
-                <UserImg
-                    source={{
-                        uri: item
-                            ? item.userImg ||
-                            'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
-                            : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
-                    }}
-                />
-                <UserInfoText>
-                    <UserName>
-                        {item ? item.userName || 'User' : 'User'}
-                    </UserName>
-                    <PostTime>{moment(item.postTime).fromNow()}</PostTime>
-                </UserInfoText>
-            </UserInfo>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                <View>
+                    <TouchableOpacity onPress={() =>
+                        navigation.navigate('HomeProfile', { userId: item.userId })
+                    }>
+                        <UserInfo>
+                            <UserImg
+                                source={{
+                                    uri: item
+                                        ? item.userImg ||
+                                        'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
+                                        : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
+                                }}
+                            />
+                            <UserInfoText>
+                                <TouchableOpacity onPress={onPress}>
+                                    <UserName>
+                                        {item ? item.userName || 'User' : 'User'}
+                                    </UserName>
+                                </TouchableOpacity>
+                                <PostTime>{moment(item.postTime).fromNow()}</PostTime>
+                            </UserInfoText>
+                        </UserInfo>
+                    </TouchableOpacity>
+                </View>
+                <View>
+                    {user._id == item.userId ? (
+                        <Menu>
+                            <MenuTrigger customStyles={{ triggerText: { fontSize: 20 } }}>
+                                <Ionicons name="ellipsis-vertical" size={22} />
+                            </MenuTrigger>
+                            <MenuOptions >
+                                <MenuOption onSelect={() => handleUpdate(item.id)} style={{ alignItems: 'center', flexDirection: 'row' }} >
+                                    <Ionicons name="create-outline" size={18} color={'blue'} />
+                                    <Text style={{ color: 'blue', paddingLeft: 10 }}>Edit</Text>
+                                </MenuOption>
+                                <MenuOption onSelect={() => handleDelete(item.id)} style={{ alignItems: 'center', flexDirection: 'row' }}>
+                                    <Ionicons name="trash-bin-outline" size={18} color={'red'} />
+                                    <Text style={{ color: 'red', paddingLeft: 10 }}>Delete</Text>
+                                </MenuOption>
+                            </MenuOptions>
+                        </Menu>
+                    ) : null}
+
+                </View>
+            </View>
+           
             <PostText>{item.post}</PostText>
             {item.postImg != null ? (
                 item.postImg.map((imageUrl, index) => (
@@ -212,7 +273,7 @@ const DetailPostScreen = ({ route, navigation }) => {
             <InteractionWrapper>
                 <Interaction active={item.liked}>
                     <TouchableOpacity onPress={handleLike}>
-                        <Ionicons name={item.liked ? 'heart' : 'heart-outline'} size={25} color={item.liked ? '#2e64e5' : '#333'} />
+                        <Ionicons name={item.liked ? 'heart' : 'heart-outline'} size={25} color={item.liked ? '#E62E2E' : '#333'} />
                     </TouchableOpacity>
                     <InteractionText active={item.liked}>{item.likes?.length === 1 ? '1 ' : `${item.likes?.length} `} Like</InteractionText>
                 </Interaction>
@@ -226,16 +287,11 @@ const DetailPostScreen = ({ route, navigation }) => {
 
                     </TouchableOpacity>
                 </Interaction>
-                {user._id == item.userId ? (
-                    <Interaction onPress={() => handleDelete(item.id)}>
-                        <Ionicons name="trash-bin-outline" size={25} />
-                    </Interaction>
-                ) : null}
             </InteractionWrapper>
             <View style={styles.container}>
                 {(isOpenDialogCmt) ? (
                     <Dialog.Container visible={true}>
-                        <Dialog.Title>Bình luận bài viết</Dialog.Title>
+                        <Dialog.Title></Dialog.Title>
                         <InputField
                             placeholder="Vui lòng nhập bình luận ?"
                             multiline
@@ -258,26 +314,42 @@ const DetailPostScreen = ({ route, navigation }) => {
 
                 <FlatList
                     data={comments}
-                    renderItem={({ item: comment }) => ( // Change 'item' to 'comment' or any other desired variable name
-                        <View style={styles.UserInfo}>
-                            <Image
-                                style={styles.UserImg}
-                                source={{
-                                    uri: comment
-                                        ? comment.userAvatar ||
-                                        'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg' :
-                                        'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
-                                }}
-                            />
-                            <View style={styles.UserInfoText}>
-                                <UserName>{comment ? comment.userName || 'User' : 'User'}</UserName>
-                                <PostTime>{moment(comment.cmtDate).fromNow()}</PostTime>
+                    renderItem={({ item: comment }) => ( 
+                        <>
+                            <View style={styles.UserInfo}>
+                                <Image
+                                    style={styles.UserImg}
+                                    source={{
+                                        uri: comment
+                                            ? comment.userAvatar ||
+                                            'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg' :
+                                            'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
+                                    }}
+                                />
+                                <View style={styles.UserInfoText}>
+                                    <UserName>{comment ? comment.userName || 'User' : 'User'}</UserName>
+                                    <PostTime>{moment(comment.cmtDate).fromNow()}</PostTime>
+                                </View>
+                                <>
+                                    <PostText style={{width:275}}>{comment.content}</PostText>
+                                    {user._id == comment.userId ? (
+                                        <Menu style={{ alignItems: 'flex-end' }}>
+                                            <MenuTrigger customStyles={{ triggerText: { fontSize: 20 } }}>
+                                                <Ionicons name="ellipsis-vertical" size={22} />
+                                            </MenuTrigger>
+                                            <MenuOptions >
+                                                <MenuOption onSelect={() => handleDelCmt(comment._id)} style={{ alignItems: 'center', flexDirection: 'row' }}>
+                                                    <Ionicons name="trash-bin-outline" size={18} color={'red'} />
+                                                    <Text style={{ color: 'red', paddingLeft: 10 }}>Delete</Text>
+                                                </MenuOption>
+                                            </MenuOptions>
+                                        </Menu>
+                                    ) : null}
+                                </>
+                                
                             </View>
-                            <PostText>{comment.content}</PostText>
-                            {user._id == comment.userId ? (
-                                <Ionicons onPress={() => handleDelCmt(comment._id)} name="trash-bin-outline" size={25} />
-                            ) : null}
-                        </View>
+                        </>
+                        
                     )}
                     keyExtractor={(comment) => comment._id.toString()}
                 />
@@ -299,7 +371,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: 'white',
-        height: 500,
+        height: 510,
         marginVertical: 6,
     },
 
@@ -366,7 +438,11 @@ const styles = StyleSheet.create({
     UserInfo: {
         flexDirection: 'row',
         justifyContent: 'flex-start',
-        padding: 15,
+        padding: 10,
+        backgroundColor:'#fff',
+        borderColor:'#ccc',
+        borderWidth:0.5,
+        alignItems:'center'
     },
     UserImg: {
         width: 30,
