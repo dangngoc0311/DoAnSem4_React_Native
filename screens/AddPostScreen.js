@@ -9,6 +9,7 @@ import { AuthContext } from '../navigation/AuthProvider';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { windowWidth } from '../constants/config';
 import { useNavigation } from '@react-navigation/native';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 const AddPostScreen = () => {
     const { user, logout } = useContext(AuthContext);
@@ -83,6 +84,11 @@ const AddPostScreen = () => {
         })
             .then(res => {
                 if (!res.ok) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Network response was not ok',
+                        visibilityTime: 500,
+                    });
                     throw new Error('Network response was not ok');
                 }
                 return res.json();
@@ -90,10 +96,19 @@ const AddPostScreen = () => {
             .then(data => {
                 setPost(null);
                 setImage(null);
-                console.log(data.post);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Add new post successfully!',
+                    visibilityTime: 1000,
+                });
                 navigation.navigate('Social App');
             })
             .catch(error => {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error adding post',
+                    visibilityTime: 500,
+                });
                 console.error('Error adding post:', error);
             });
     };
@@ -190,8 +205,8 @@ const AddPostScreen = () => {
                         placeholder="What's on your mind?"
                         multiline
                         numberOfLines={4}
-                        value={post}
-                        onChangeText={(content) => setPost(content)}
+                        value={post || ''}
+                        onChangeText={(content) => setPost(content || '')}
                     />
 
                 </InputWrapper>

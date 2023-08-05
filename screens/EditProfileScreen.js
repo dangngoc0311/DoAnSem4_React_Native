@@ -15,6 +15,7 @@ import ImagePicker from 'react-native-image-crop-picker';
 import { InputWrapper } from '../constants/PostStyle';
 import { useRef } from 'react';
 import ActionSheet from 'react-native-actionsheet';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 const EditProfileScreen = () => {
     const { user, logout } = useContext(AuthContext);
     const [image, setImage] = useState(null);
@@ -31,6 +32,11 @@ const EditProfileScreen = () => {
                 setUserData(data);
             })
             .catch((error) => {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Network response was not ok',
+                    visibilityTime: 1000,
+                });
                 console.error('Error fetching user data:', error);
             });
     }
@@ -54,8 +60,13 @@ const EditProfileScreen = () => {
             })
         })
             .then(res => {
-                if (!res.ok) {
+                if (!res.ok) {Toast.show({
+                        type: 'error',
+                        text1: 'Network response was not ok',
+                        visibilityTime: 1000,
+                    });
                     throw new Error('Network response was not ok');
+                    
                 }
                 setUploading(true);
                 return res.json();
@@ -108,6 +119,11 @@ const EditProfileScreen = () => {
             setUploading(false);
             return data.filename;
         } catch (e) {
+            Toast.show({
+                type: 'error',
+                text1: 'Network response was not ok',
+                visibilityTime: 1000,
+            });
             console.error('Error uploading image:', e);
             setUploading(false);
             return null;

@@ -105,7 +105,7 @@ const PostCard = ({ item, onDelete, onPress, onLike, onComment, onUpdate }) => {
             <InteractionWrapper>
                 <Interaction active={item.liked}>
                     <TouchableOpacity onPress={() => onLike(item.id)}>
-                        <Ionicons name={item.liked ? 'heart' : 'heart-outline'} size={25} color={item.liked ? '#2e64e5' : '#333'} />
+                        <Ionicons name={item.liked ? 'heart' : 'heart-outline'} size={25} color={item.liked ? '#E62E2E' : '#333'} />
                     </TouchableOpacity>
                     <InteractionText active={item.liked}>{item.likes?.length === 1 ? '1 ' : `${item.likes?.length} `} Like</InteractionText>
                 </Interaction>

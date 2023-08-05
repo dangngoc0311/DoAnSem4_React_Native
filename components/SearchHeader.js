@@ -24,11 +24,21 @@ const SearchHeader = ({ navigation }) => {
         try {
             const response = await fetch(`http:/10.0.2.2:3000/connections/${user._id}`);
             if (!response.ok) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error server',
+                    visibilityTime: 1000,
+                });
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
             setUserList(data);
         } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Error server',
+                visibilityTime: 1000,
+            });
             console.error('Error fetching user connections:', error);
         }
     };
@@ -72,6 +82,9 @@ const SearchHeader = ({ navigation }) => {
                         width:'95%'
                     }}
                     textStyle={{ color: 'black' }}
+                    autoFocus={isFocused}
+                    returnKeyType="done"
+                    blurOnSubmit={true}
                 />
                 <TouchableOpacity onPress={handleCloseDropdown}>
                     <Ionicons name="close" color={'black'} size={22} />

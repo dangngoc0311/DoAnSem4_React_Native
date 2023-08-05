@@ -8,14 +8,16 @@ import { AuthContext } from '../navigation/AuthProvider';
 import { useContext } from 'react';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 const EditPostScreen = ({ route, navigation }) => {
     const { postId } = route.params;
     const { user, logout } = useContext(AuthContext);
     const [image, setImage] = useState(null);
-    const [post, setPost] = useState(null);
+    const [post, setPost] = useState('');
     const [uploading, setUploading] = useState(false);
     const [transferred, setTransferred] = useState(0);
+    const [item,setItem] = useState(null);
     const takePhotoFromCamera = () => {
         ImagePicker.openCamera({
             width: 1200,
@@ -54,24 +56,158 @@ const EditPostScreen = ({ route, navigation }) => {
                 body: JSON.stringify({ userId: user._id }),
             });
             if (!response.ok) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Network response was not ok',
+                    visibilityTime: 1000,
+                });
                 throw new Error('Network response was not ok');
             }
             const data = await response.json();
+            setItem(data)
             setImage(data.postImg[0]);
             setPost(data.post)
         } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Network response was not ok',
+                visibilityTime: 1000,
+            });
             console.error('Error fetching post detail:', error);
         }
     };
+    // Hàm update post
+
+    const updatePost = async () => {
+        if (!postId || (!post && !image)) {
+            console.error('Error: Post ID, content, or image is missing for updating the post.');
+            return;
+        }
+
+        let isImageDeleted = false; // Thêm cờ isImageDeleted với giá trị mặc định là false
+
+        let updatedPostImg = null;
+        if (image) {
+            // Kiểm tra xem ảnh có thay đổi so với ảnh hiện tại
+            const currentImg = item.postImg[0];
+            if (currentImg !== image) {
+                updatedPostImg = 'http://10.0.2.2:3000/public/uploads/' + await uploadImage();
+            }
+        } else {
+            // Nếu không có ảnh, và đã có ảnh trong postImg thì đánh dấu ảnh đã xoá
+            if (item.postImg[0]) {
+                isImageDeleted = true;
+            }
+        }
+
+        const requestBody = {
+            userId: user._id,
+            post: post,
+            deletePostImg: isImageDeleted, // Gửi cờ isImageDeleted lên API để xử lý xoá ảnh
+        };
+
+        // Nếu ảnh có thay đổi hoặc bị xoá
+        if (updatedPostImg !== null) {
+            requestBody.postImg = updatedPostImg;
+        }
+        console.log("req body  : " + requestBody);
+
+        fetch(`http://10.0.2.2:3000/posts/${postId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        })
+            .then(res => {
+                if (!res.ok) {
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Network response was not ok',
+                        visibilityTime: 1000,
+                    });
+                    throw new Error('Network response was not ok');
+                }
+                return res.json();
+            })
+            .then(data => {
+                // Xoá ảnh trong postImg nếu có
+                if (isImageDeleted) {
+                    const updatedPostImgList = item.postImg.filter((img) => img !== image);
+                    // Cập nhật lại list postImg sau khi xoá ảnh
+                    setItem({ ...item, postImg: updatedPostImgList });
+                }
+
+                setPost(null);
+                setImage(null);
+                console.log('Updated Post:', data.post);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Update post successfully!',
+                    visibilityTime: 1000,
+                });
+                navigation.navigate('Social App'); 
+            })
+            .catch(error => {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Network response was not ok',
+                    visibilityTime: 1000,
+                });
+                console.error('Error updating post:', error);
+            });
+    };
+
+
+    const uploadImage = async () => {
+        if (image == null) {
+            return null;
+        }
+        const uploadUri = image;
+        let filename = uploadUri.substring(uploadUri.lastIndexOf('/') + 1);
+
+        // Add timestamp to File Name
+        const extension = filename.split('.').pop();
+        const name = filename.split('.').slice(0, -1).join('.');
+        filename = name + Date.now() + '.' + extension;
+        const formData = new FormData();
+        formData.append('image', {
+            uri: uploadUri,
+            type: 'image/jpeg',
+            name: filename,
+        });
+
+        setUploading(true);
+
+        try {
+            const response = await fetch('http://10.0.2.2:3000/upload', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            console.log('Response:', data);
+            setUploading(false);
+            return data.filename;
+        } catch (e) {
+            console.error('Error uploading image:', e);
+            setUploading(false);
+            return null;
+        }
+    };
+
     useEffect(() => {
         fetchPostDetail();
         console.log("img : " + post);
 
     }, [postId]);
     
-    if (!item) {
-        return <ActivityIndicator size="large" color="#000" />;
-    }
+    // if (!post) {
+    //     return <ActivityIndicator size="large" color="#000" />;
+    // }
  
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -93,7 +229,7 @@ const EditPostScreen = ({ route, navigation }) => {
                             <ActivityIndicator size="large" color="#0000ff" />
                         </StatusWrapper>
                     ) : (
-                        <SubmitBtn >
+                            <SubmitBtn onPress={updatePost}>
                             <SubmitBtnText>Update</SubmitBtnText>
                         </SubmitBtn>
                     )}
@@ -126,8 +262,8 @@ const EditPostScreen = ({ route, navigation }) => {
                         placeholder="What's on your mind?"
                         multiline
                         numberOfLines={4}
-                        value={post}
-                        onChangeText={(content) => setPost(content)}
+                        value={post || ''} 
+                        onChangeText={(content) => setPost(content || '')}
                     />
 
                 </InputWrapper>

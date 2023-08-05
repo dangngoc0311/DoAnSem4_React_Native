@@ -3,9 +3,11 @@ import { useContext } from 'react';
 import { AuthContext } from '../navigation/AuthProvider';
 import firestore from '@react-native-firebase/firestore';
 import { useEffect } from 'react';
-import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import PostCard from '../components/PostCard';
 import { useState } from 'react';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { Toast } from 'react-native-toast-message/lib/src/Toast';
 
 const ProfileScreen = ({ navigation, route }) => {
     const { user, logout } = useContext(AuthContext);
@@ -60,7 +62,61 @@ const ProfileScreen = ({ navigation, route }) => {
         navigation.addListener("focus", () => setLoading(!loading));
     }, [navigation, loading]);
 
-    const handleDelete = () => { };
+    const deletePost = async (postId) => {
+        console.log('Current Post Id: ', postId);
+
+        try {
+            const response = await fetch(`http://10.0.2.2:3000/posts/${postId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                console.log('Post deleted successfully');
+                Toast.show({
+                    type: 'success',
+                    text1: 'Post deleted successfully!',
+                    visibilityTime: 1000,
+                });
+                setPosts((prevPosts) => prevPosts.filter((post) => post.id !== postId));
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Failed to delete post',
+                    visibilityTime: 1000,
+                });
+                console.error('Failed to delete post:', response.statusText);
+            }
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Network response was not ok',
+                visibilityTime: 1000,
+            });
+            console.error('Error deleting post:', error);
+        }
+    };
+    const handleDelete = (postId) => {
+        Alert.alert(
+            'Delete post',
+            'Are you sure?',
+            [
+                {
+                    text: 'Cancel',
+                    onPress: () => console.log('Cancel Pressed!'),
+                    style: 'cancel',
+                },
+                {
+                    text: 'Confirm',
+                    onPress: () => deletePost(postId),
+                },
+            ],
+            { cancelable: false },
+        );
+    };
+
     const _handleCmt = (postId, cmt) => {
         if (!cmt) {
             return
@@ -83,8 +139,18 @@ const ProfileScreen = ({ navigation, route }) => {
                             : post
                     )
                 );
+                Toast.show({
+                    type: 'success',
+                    text1: 'Successfully!',
+                    visibilityTime: 1000,
+                });
             })
             .catch((error) => {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Error adding comment',
+                    visibilityTime: 1000,
+                });
                 console.error('Error adding comment:', error);
             });
     }
@@ -112,7 +178,17 @@ const ProfileScreen = ({ navigation, route }) => {
                             : post
                     )
                 );
+                Toast.show({
+                    type: 'success',
+                    text1: 'Successfully!',
+                    visibilityTime: 1000,
+                });
             } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Network response was not ok',
+                    visibilityTime: 1000,
+                });
                 console.error('Failed to update post likes:', response.statusText);
             }
         } catch (error) {
@@ -138,7 +214,17 @@ const ProfileScreen = ({ navigation, route }) => {
                     followers: data.followers,
                     followings: data.followings,
                 }));
+                Toast.show({
+                    type: 'success',
+                    text1: 'Successfully!',
+                    visibilityTime: 1000,
+                });
             } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'Network response was not ok',
+                    visibilityTime: 1000,
+                });
                 console.error('Failed to follow/unfollow user:', response.statusText);
             }
         } catch (error) {
@@ -158,6 +244,9 @@ const ProfileScreen = ({ navigation, route }) => {
         console.log(item);
         // Navigate to 'ChatScreen' with the parameters
         navigation.navigate('Chat', item);
+    };
+    const handleUpdate = (postId) => {
+        navigation.navigate('EditPost', { postId });
     };
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -215,10 +304,60 @@ const ProfileScreen = ({ navigation, route }) => {
                     </View>
                 </View>
 
-                {posts.map((item) => (
-                    <PostCard key={item.id} item={item} onDelete={handleDelete} onLike={handleLike}
-                        onComment={_handleCmt} />
-                ))}
+                {loading ? (
+                    <ScrollView
+                        style={{ flex: 1 }}
+                        contentContainerStyle={{ alignItems: 'center' }}>
+                        <SkeletonPlaceholder>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+                                <View style={{ marginLeft: 20 }}>
+                                    <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+                                    <View
+                                        style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+                                    />
+                                </View>
+                            </View>
+                            <View style={{ marginTop: 10, marginBottom: 30 }}>
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                                <View
+                                    style={{ marginTop: 6, width: 250, height: 20, borderRadius: 4 }}
+                                />
+                                <View
+                                    style={{ marginTop: 6, width: 350, height: 200, borderRadius: 4 }}
+                                />
+                            </View>
+                        </SkeletonPlaceholder>
+                        <SkeletonPlaceholder>
+                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                <View style={{ width: 60, height: 60, borderRadius: 50 }} />
+                                <View style={{ marginLeft: 20 }}>
+                                    <View style={{ width: 120, height: 20, borderRadius: 4 }} />
+                                    <View
+                                        style={{ marginTop: 6, width: 80, height: 20, borderRadius: 4 }}
+                                    />
+                                </View>
+                            </View>
+                            <View style={{ marginTop: 10, marginBottom: 30 }}>
+                                <View style={{ width: 300, height: 20, borderRadius: 4 }} />
+                                <View
+                                    style={{ marginTop: 6, width: 250, height: 20, borderRadius: 4 }}
+                                />
+                                <View
+                                    style={{ marginTop: 6, width: 350, height: 200, borderRadius: 4 }}
+                                />
+                            </View>
+                        </SkeletonPlaceholder>
+                    </ScrollView>
+                ) : (<>
+                            {posts.map((item) => (
+                                <PostCard key={item.id} item={item} onDelete={handleDelete} onLike={handleLike}
+                                    onComment={_handleCmt} onUpdate={handleUpdate} />
+                            ))}</>
+                )}
+
+
+                
             </ScrollView>
         </SafeAreaView>
     );
