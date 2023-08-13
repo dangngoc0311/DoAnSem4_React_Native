@@ -102,7 +102,7 @@ const SearchHeader = ({ navigation }) => {
                                 <TouchableOpacity onPress={() => chat(item)} activeOpacity={0.7}>
                                     <UserInfo>
                                         <UserImgWrapper>
-                                            <UserImg source={{ uri: item ? item.userImg || 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg' : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg' }} />
+                                            <UserImg source={{ uri: item ? item.userImg || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' : 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' }} />
                                         </UserImgWrapper>
                                         <TextSection>
                                             <UserInfoText>

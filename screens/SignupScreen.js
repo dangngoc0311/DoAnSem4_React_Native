@@ -2,7 +2,7 @@ import React from 'react';
 import { useContext } from "react";
 import { useState } from "react";
 import { AuthContext } from "../navigation/AuthProvider";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import FormInput from "../components/FormInput";
 import FormButton from "../components/FormButton";
 import Ionicons from 'react-native-vector-icons/Ionicons';
@@ -32,7 +32,10 @@ const SignupScreen = ({ navigation }) => {
         register(fname, lname, email, password);
     };
     return (
-        <View style={styles.container}>
+        <ScrollView style={{
+        padding: 20,
+            backgroundColor: '#f9fafd',
+        }}>
             <FormInput
                 labelValue={fname}
                 onChangeText={(userFname) => setFname(userFname)}
@@ -73,7 +76,7 @@ const SignupScreen = ({ navigation }) => {
                     onChangeText={(password) => setPassword(password)}
                     placeholderText="Password"
                     iconType="lock"
-                    secureTextEntry={isPasswordShown} onBlur={handleValidation}
+                    secureTextEntry={isPasswordShown}
                 />
                 <TouchableOpacity
                     onPress={() => setIsPasswordShown(!isPasswordShown)}
@@ -97,8 +100,8 @@ const SignupScreen = ({ navigation }) => {
             {submitted && !password && (
                 <Text style={styles.errorText}>Password is required</Text>
             )}
-            {passwordError.length > 0 && (
-                <Text style={{ color: 'red', textAlign: 'left' }}>{passwordError}</Text>
+            {submitted && password && password.length < 6 && (
+                <Text style={styles.errorText}>Password must be at least 6 characters</Text>
             )}
             <FormButton
                 buttonTitle="Sign Up"
@@ -109,7 +112,7 @@ const SignupScreen = ({ navigation }) => {
                 onPress={() => navigation.navigate('Login')}>
                 <Text style={styles.navButtonText}>Have an account? Sign In</Text>
             </TouchableOpacity>
-        </View>
+        </ScrollView>
     );
 };
 
@@ -131,13 +134,14 @@ const styles = StyleSheet.create({
     },
     navButton: {
         marginTop: 15,
-        marginBottom:25
+        marginBottom:25,
     },
     navButtonText: {
         fontSize: 18,
         fontWeight: '500',
         color: '#FF9990',
         fontFamily: 'Lato-Regular', 
+        textAlign: 'center',
         marginVertical: 30,
     },
     textPrivate: {

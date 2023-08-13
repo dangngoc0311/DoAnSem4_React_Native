@@ -13,13 +13,14 @@ import { windowWidth } from '../constants/config';
 import Dialog from "react-native-dialog";
 import { InputField } from '../constants/PostStyle';
 import Menu, { MenuItem, MenuDivider, MenuTrigger, MenuOptions, MenuOption } from 'react-native-popup-menu';
+import Video from 'react-native-video';
 const PostCard = ({ item, onDelete, onPress, onLike, onComment, onUpdate }) => {
     const { user, logout } = useContext(AuthContext);
     const [userData, setUserData] = useState(null);
     const [isOpenDialogCmt, setOpenDialogCmt] = useState(false)
     const [cmt, setCmt] = useState('')
     const navigation = useNavigation();
-   
+    const [isVideoPlaying, setIsVideoPlaying] = useState(false);
     const getUser = async () => {
         fetch(`http://10.0.2.2:3000/users/${route.params ? route.params.userId : user._id}`)
             .then((response) => response.json())
@@ -49,9 +50,7 @@ const PostCard = ({ item, onDelete, onPress, onLike, onComment, onUpdate }) => {
                             <UserImg
                                 source={{
                                     uri: item
-                                        ? item.userImg ||
-                                        'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
-                                        : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
+                                        ? item.userImg || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' : 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg'
                                 }}
                             />
                             <UserInfoText>
@@ -89,18 +88,29 @@ const PostCard = ({ item, onDelete, onPress, onLike, onComment, onUpdate }) => {
             <TouchableOpacity onPress={() => handlePostPress(item.id)}>
                 <PostText>{item.post}</PostText>
                 {item.postImg != null ? (
-                    item.postImg.map((imageUrl, index) => (
-                        <ProgressiveImage
-                            key={index}
-                            defaultImageSource={require('../assets/default-img.jpg')}
-                            source={{ uri: imageUrl }}
-                            style={{ width: '100%', height: 250 }}
-                            resizeMode="cover"
-                        />
+                    item.postImg.map((mediaUrl, index) => (
+                        mediaUrl.endsWith('.mp4') ? ( 
+                            <Video
+                                key={index}
+                                source={{ uri: mediaUrl }}
+                                style={{ width: '100%', height: 250 }}
+                                resizeMode="cover"
+                                controls autoplay={false}
+                            />
+                        ) : (
+                            <ProgressiveImage
+                                key={index}
+                                defaultImageSource={require('../assets/default-img.jpg')}
+                                source={{ uri: mediaUrl }}
+                                style={{ width: '100%', height: 250 }}
+                                resizeMode="cover"
+                            />
+                        )
                     ))
                 ) : (
                     <Divider />
                 )}
+
             </TouchableOpacity>
             <InteractionWrapper>
                 <Interaction active={item.liked}>

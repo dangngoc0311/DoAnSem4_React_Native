@@ -1,25 +1,21 @@
-import React from 'react';
-import ImagePicker from 'react-native-image-crop-picker';
 import { useContext } from 'react';
-import { useState } from 'react';
-import { ActivityIndicator, Image, Keyboard, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { ActivityIndicator, Image, Keyboard, Platform, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from 'react-native';
+import { AuthContext } from '../navigation/AuthProvider';
 import { AddImage, InputField, InputWrapper, StatusWrapper, SubmitBtn, SubmitBtnText } from '../constants/PostStyle';
 import ActionButton from 'react-native-action-button';
-import { AuthContext } from '../navigation/AuthProvider';
+import ImagePicker from 'react-native-image-crop-picker';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { windowWidth } from '../constants/config';
-import { useNavigation } from '@react-navigation/native';
+import { useState } from 'react';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
-import Video from 'react-native-video';
+import { useNavigation } from '@react-navigation/native';
 
-const AddPostScreen = () => {
-    const { user, logout } = useContext(AuthContext);
+const AddStoryScreen = ()=>{
+    const { user } = useContext(AuthContext);
     const [image, setImage] = useState(null);
     const [uploading, setUploading] = useState(false);
     const [transferred, setTransferred] = useState(0);
-    const [post, setPost] = useState(null);
-    const [isImage, setIsImage] = useState(true);
-    const userId = user._id;
+    const [swipeText, setContent] = useState("");
     const navigation = useNavigation();
     const takePhotoFromCamera = () => {
         ImagePicker.openCamera({
@@ -30,7 +26,6 @@ const AddPostScreen = () => {
             console.log(image);
             const imageUri = Platform.OS === 'ios' ? image.sourceURL : image.path;
             setImage(imageUri);
-            setIsImage(true);
         });
     };
 
@@ -43,54 +38,33 @@ const AddPostScreen = () => {
             console.log(image);
             const imageUri = Platform.OS === 'ios' ? image.sourceURL : image.path;
             setImage(imageUri);
-            setIsImage(true);
         });
     };
-
-    const chooseVideoFromLibrary = () => {
-        ImagePicker.openPicker({
-            mediaType: 'video',
-        }).then((media) => {
-            console.log(media);
-            const mediaUri = Platform.OS === 'ios' ? media.sourceURL : media.path;
-            setImage(mediaUri);
-            setIsImage(false);
-        });
-    };
+  
     const _handleClearImage = () => {
         setImage(null)
     }
-
-    const submitPost = async () => {
-        if (!post && image == null) {
-            console.error('Error: Either content or image is required for a post.');
+    const submitStory = async () => {
+        console.log("vao day roi")
+        if (!swipeText && image == null) {
+            console.error('Error: Either swipeText or selectedImage is required for a story.');
             return;
         }
-
-        let postImg = null;
+        let storyImage = null;
         if (image != null) {
-            postImg = 'http://10.0.2.2:3000/public/uploads/' + await uploadImage();
+            storyImage = 'http://10.0.2.2:3000/public/uploads/' + await uploadImage();
         }
-
-        console.log("Anh : " + postImg);
-
         const requestBody = {
-            userId,
+            userId: user._id, 
+            swipeText,
         };
 
-        if (postImg !== null) {
-            requestBody.postImg = postImg;
-        } else {
-            requestBody.postImg = "";
+        if (image !== null) {
+            requestBody.story_image = image;
+        }else{
+            requestBody.story_image = "";
         }
-
-        if (post) {
-            requestBody.post = post;
-        } else {
-            requestBody.post = "";
-        }
-
-        fetch('http://10.0.2.2:3000/posts', {
+        fetch('http://10.0.2.2:3000/postStory', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -109,11 +83,11 @@ const AddPostScreen = () => {
                 return res.json();
             })
             .then(data => {
-                setPost(null);
+                setContent('');
                 setImage(null);
                 Toast.show({
                     type: 'success',
-                    text1: 'Add new post successfully!',
+                    text1: 'Story posted successfully!',
                     visibilityTime: 1000,
                 });
                 navigation.navigate('Social App');
@@ -121,10 +95,10 @@ const AddPostScreen = () => {
             .catch(error => {
                 Toast.show({
                     type: 'error',
-                    text1: 'Error adding post',
+                    text1: 'Error posting story',
                     visibilityTime: 500,
                 });
-                console.error('Error adding post:', error);
+                console.error('Error posting story:', error);
             });
     };
     const uploadImage = async () => {
@@ -141,7 +115,7 @@ const AddPostScreen = () => {
         const formData = new FormData();
         formData.append('media', {
             uri: uploadUri,
-            type: isImage ? 'image/jpeg' : 'video/mp4',
+            type: 'image/jpeg',
             name: filename,
         });
 
@@ -167,6 +141,7 @@ const AddPostScreen = () => {
         }
     };
 
+
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <View style={styles.container}>
@@ -187,7 +162,7 @@ const AddPostScreen = () => {
                             <ActivityIndicator size="large" color="#0000ff" />
                         </StatusWrapper>
                     ) : (
-                        <SubmitBtn onPress={submitPost}>
+                            <SubmitBtn onPress={submitStory}>
                             <SubmitBtnText>Post</SubmitBtnText>
                         </SubmitBtn>
                     )}
@@ -214,25 +189,14 @@ const AddPostScreen = () => {
                             )
                             : null
                     }
-                    {image != null ?
-
-                        isImage ?
-                            <AddImage source={{ uri: image }} />
-
-                            : <Video
-                                source={{ uri: image }}
-                                style={{ width: '100%', height: 250 }}
-                                resizeMode="cover"
-                                controls
-                            />
-                        : null}
+                    {image != null ? <AddImage source={{ uri: image }} /> : null}
 
                     <InputField
                         placeholder="What's on your mind?"
                         multiline
                         numberOfLines={4}
-                        value={post || ''}
-                        onChangeText={(content) => setPost(content || '')}
+                        value={swipeText || ''}
+                        onChangeText={(content) => setContent(content || '')}
                     />
 
                 </InputWrapper>
@@ -249,20 +213,12 @@ const AddPostScreen = () => {
                         onPress={choosePhotoFromLibrary}>
                         <Icon name="md-images-outline" style={styles.actionButtonIcon} />
                     </ActionButton.Item>
-                    <ActionButton.Item
-                        buttonColor="#f0e511"
-                        title="Choose Video"
-                        onPress={chooseVideoFromLibrary}>
-                        <Icon name="videocam-outline" style={styles.actionButtonIcon} />
-                    </ActionButton.Item>
                 </ActionButton>
             </View>
         </TouchableWithoutFeedback>
-    );
-};
-
-export default AddPostScreen;
-
+    ); 
+}
+export default AddStoryScreen;
 const styles = StyleSheet.create({
     container: {
         flex: 1,

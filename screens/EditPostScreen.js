@@ -9,6 +9,7 @@ import { useContext } from 'react';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import Video from 'react-native-video';
 
 const EditPostScreen = ({ route, navigation }) => {
     const { postId } = route.params;
@@ -16,6 +17,7 @@ const EditPostScreen = ({ route, navigation }) => {
     const [image, setImage] = useState(null);
     const [post, setPost] = useState('');
     const [uploading, setUploading] = useState(false);
+    const [isImage, setIsImage] = useState(true);
     const [transferred, setTransferred] = useState(0);
     const [item,setItem] = useState(null);
     const takePhotoFromCamera = () => {
@@ -27,6 +29,7 @@ const EditPostScreen = ({ route, navigation }) => {
             console.log(image);
             const imageUri = Platform.OS === 'ios' ? image.sourceURL : image.path;
             setImage(imageUri);
+            setIsImage(true);
         });
     };
 
@@ -39,6 +42,20 @@ const EditPostScreen = ({ route, navigation }) => {
             console.log(image);
             const imageUri = Platform.OS === 'ios' ? image.sourceURL : image.path;
             setImage(imageUri);
+            setIsImage(true);
+        });
+    };
+    const chooseVideoFromLibrary = () => {
+        ImagePicker.openPicker({
+            mediaType: 'video',
+            width: 1200,
+            height: 780,
+            cropping: true,
+        }).then((media) => {
+            console.log(media);
+            const mediaUri = Platform.OS === 'ios' ? media.sourceURL : media.path;
+            setImage(mediaUri);
+            setImage(false);
         });
     };
     const _handleClearImage = () => {
@@ -65,8 +82,18 @@ const EditPostScreen = ({ route, navigation }) => {
             }
             const data = await response.json();
             setItem(data)
-            setImage(data.postImg[0]);
             setPost(data.post)
+            console.log("sdjhsjgd : " + data.postImg[0])
+            if (data.postImg != null) {
+                const fileExtension = getFileExtension(data.postImg[0]);
+                const isImage = isImageFile(fileExtension);
+                setIsImage(isImage);
+                if (isImage) {
+                    setImage(data.postImg[0]);
+                } else {
+                    setImage(data.postImg[0]);
+                }
+            }
         } catch (error) {
             Toast.show({
                 type: 'error',
@@ -77,6 +104,13 @@ const EditPostScreen = ({ route, navigation }) => {
         }
     };
     // Hàm update post
+    const getFileExtension = (filename) => {
+        return filename.split('.').pop();
+    };
+    const isImageFile = (extension) => {
+        const imageExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+        return imageExtensions.includes(extension.toLowerCase());
+    };
 
     const updatePost = async () => {
         if (!postId || (!post && !image)) {
@@ -171,9 +205,9 @@ const EditPostScreen = ({ route, navigation }) => {
         const name = filename.split('.').slice(0, -1).join('.');
         filename = name + Date.now() + '.' + extension;
         const formData = new FormData();
-        formData.append('image', {
+        formData.append('media', {
             uri: uploadUri,
-            type: 'image/jpeg',
+            type: isImage ? 'image/jpeg' : 'video/mp4',
             name: filename,
         });
 
@@ -217,7 +251,7 @@ const EditPostScreen = ({ route, navigation }) => {
                     <View style={styles.viewUser}>
 
                         <Image style={styles.avatar}
-                            source={{ uri: user ? user.userImg || 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg' : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg' }} />
+                            source={{ uri: user ? user.userImg || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' : 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' }} />
 
                         <Text style={styles.textEmail}>
                             {user ? user.fname || 'Test' : 'Test'} {user ? user.lname || 'User' : 'User'}
@@ -256,7 +290,19 @@ const EditPostScreen = ({ route, navigation }) => {
                             )
                             : null
                     }
-                    {image != null ? <AddImage source={{ uri: image }} /> : null}
+                    {image != null ?
+
+                        isImage ?
+                            <AddImage source={{ uri: image }} />
+
+                            : <Video
+                                source={{ uri: image }}
+                                style={{ width: '100%', height: 250 }}
+                                resizeMode="cover"
+                                controls
+                            />
+                        : null}
+
 
                     <InputField
                         placeholder="What's on your mind?"
@@ -280,7 +326,14 @@ const EditPostScreen = ({ route, navigation }) => {
                         onPress={choosePhotoFromLibrary}>
                         <Icon name="md-images-outline" style={styles.actionButtonIcon} />
                     </ActionButton.Item>
+                    <ActionButton.Item
+                        buttonColor="#f0e511"
+                        title="Choose Video"
+                        onPress={chooseVideoFromLibrary}>
+                        <Icon name="videocam-outline" style={styles.actionButtonIcon} />
+                    </ActionButton.Item>
                 </ActionButton>
+              
             </View>
         </TouchableWithoutFeedback>
     );

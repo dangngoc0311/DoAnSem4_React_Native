@@ -148,7 +148,7 @@ const ChatScreen = ({ route }) => {
             }
             console.log(formdata2)
             const form = new FormData();
-            form.append('image', {
+            form.append('media', {
                 uri: img,
                 type: 'image/jpeg',
                 name: newImg,
@@ -260,7 +260,16 @@ const ChatScreen = ({ route }) => {
             <FontAwesome name='angle-double-down' size={22} color='#333' />
         );
     }
-
+    const renderUserAvatar = (props) => {
+        return (
+            <View style={{ marginRight: 10 }}>
+                <Image
+                    source={{ uri: props.currentMessage.user.img || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' }}
+                    style={{ width: 40, height: 40, borderRadius: 20 }}
+                />
+            </View>
+        );
+    };
     return (
         <View style={{ flex: 1 }}>
             <GiftedChat
@@ -268,7 +277,7 @@ const ChatScreen = ({ route }) => {
                 onSend={(messages) => onSend(messages)}
                 user={{
                     _id: user._id,
-                    img: selectedImg
+                    img: selectedImg 
                 }}
 
                 renderBubble={renderBubble}
@@ -278,6 +287,7 @@ const ChatScreen = ({ route }) => {
                 renderMessageImage={renderMessageImage}
                 scrollToBottom
                 scrollToBottomComponent={scrollToBottomComponent}
+                renderAvatar={renderUserAvatar}
             />
             {selectedImg && (
                 <Image source={{ uri: selectedImg }} style={{ width: 100, height: 100 }} />

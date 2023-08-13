@@ -4,10 +4,12 @@ import { useState } from "react";
 import auth from '@react-native-firebase/auth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import { useNavigation } from '@react-navigation/native';
 
 export const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+
     return (
         <AuthContext.Provider
             value={{
