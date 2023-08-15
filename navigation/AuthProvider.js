@@ -33,8 +33,8 @@ export const AuthProvider = ({ children }) => {
                                 console.log('Error:', data.error);
                                 Toast.show({
                                     type: 'error',
-                                    text1: 'Error',
-                                    visibilityTime: 500,
+                                    text1: data.error,
+                                    visibilityTime: 1000,
                                 });
                             } else {
                                 await AsyncStorage.setItem('user', JSON.stringify(data));
@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
                                 Toast.show({
                                     type: 'success',
                                     text1: 'Login successfully!',
-                                    visibilityTime: 500, 
+                                    visibilityTime: 1000, 
                                 });
                             }
                         })
@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
                             Toast.show({
                                 type: 'error',
                                 text1: 'Error',
-                                visibilityTime: 500,
+                                visibilityTime: 1000,
                             });
                         });
                 },
@@ -75,14 +75,14 @@ export const AuthProvider = ({ children }) => {
                                 Toast.show({
                                     type: 'error',
                                     text1: 'Error',
-                                    visibilityTime: 500,
+                                    visibilityTime: 1000,
                                 });
                             } else {
                                 console.log('Registration successful:', data);
                                 Toast.show({
                                     type: 'success',
                                     text1: 'Register successfully!',
-                                    visibilityTime: 500,
+                                    visibilityTime: 1000,
                                 });
                             }
                         })
@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
                             Toast.show({
                                 type: 'error',
                                 text1: 'Error',
-                                visibilityTime: 500,
+                                visibilityTime: 1000,
                             });
                             console.log('Error:', err);
                         });
@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }) => {
                         Toast.show({
                             type: 'error',
                             text1: 'Error during logout',
-                            visibilityTime: 500,
+                            visibilityTime: 1000,
                         });
                     }
                 },

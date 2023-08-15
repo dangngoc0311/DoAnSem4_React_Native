@@ -95,7 +95,7 @@ const PostCard = ({ item, onDelete, onPress, onLike, onComment, onUpdate }) => {
                                 source={{ uri: mediaUrl }}
                                 style={{ width: '100%', height: 250 }}
                                 resizeMode="cover"
-                                controls autoplay={false}
+                                controls autoplay={false} playWhenInactive={false}
                             />
                         ) : (
                             <ProgressiveImage

@@ -18,8 +18,6 @@ const MessageScreen = ({ navigation }) => {
             const data = await response.json();
             var list = [];
             data.forEach(element => {
-                console.log("- ele : " + JSON.stringify(element));
-
                 var avatarUrl = element.userImage;
                 var messageText = "";
 

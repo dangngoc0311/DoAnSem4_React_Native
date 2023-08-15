@@ -7,8 +7,9 @@ import FormInput from "../components/FormInput";
 import FormButton from "../components/FormButton";
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import { COLORS } from '../constants/config';
+import { useNavigation } from '@react-navigation/native';
 
-const SignupScreen = ({ navigation }) => {
+const SignupScreen = () => {
     const [email, setEmail] = useState();
     const [password, setPassword] = useState();
     const [fname, setFname] = useState();
@@ -17,6 +18,8 @@ const SignupScreen = ({ navigation }) => {
     const [submitted, setSubmitted] = useState(false);
     const [isPasswordShown, setIsPasswordShown] = useState(true);
     const { register } = useContext(AuthContext);
+    const navigation = useNavigation();
+
     const handleValidation = () => {
         if (password.length < 6) {
             setPasswordError('Password must be at least 6 characters long');
@@ -30,6 +33,7 @@ const SignupScreen = ({ navigation }) => {
             return;
         } 
         register(fname, lname, email, password);
+        navigation.navigate('Login');
     };
     return (
         <ScrollView style={{
