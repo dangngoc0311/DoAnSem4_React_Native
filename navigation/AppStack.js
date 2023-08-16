@@ -16,6 +16,7 @@ import DetailPostScreen from '../screens/DetailPostScreen';
 import SearchHeader from '../components/SearchHeader';
 import { windowWidth } from '../constants/config';
 import EditPostScreen from '../screens/EditPostScreen';
+import AddStoryScreen from '../screens/AddStoryScreen';
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -73,9 +74,14 @@ const FeedStack = ({ navigation }) => (
                 ),
             }}
         />
+        
         <Stack.Screen
             name="DetailPost"
             component={DetailPostScreen}
+        />
+        <Stack.Screen
+            name="AddStory"
+            component={AddStoryScreen}
         />
         <Stack.Screen
             name="EditPost"

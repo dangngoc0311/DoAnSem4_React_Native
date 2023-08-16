@@ -18,8 +18,6 @@ const MessageScreen = ({ navigation }) => {
             const data = await response.json();
             var list = [];
             data.forEach(element => {
-                console.log("- ele : " + JSON.stringify(element));
-
                 var avatarUrl = element.userImage;
                 var messageText = "";
 
@@ -184,7 +182,7 @@ const MessageScreen = ({ navigation }) => {
                                     <TouchableOpacity onPress={() => chat(item)} activeOpacity={0.7}>
                                         <UserInfo>
                                             <UserImgWrapper>
-                                                <UserImg source={{ uri: item.userImg }} />
+                                                <UserImg source={{ uri: item.userImg || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' }} />
                                             </UserImgWrapper>
                                             <TextSection>
                                                 <UserInfoText>

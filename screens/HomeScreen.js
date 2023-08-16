@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useState } from 'react';
-import { Alert, FlatList, SafeAreaView, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, SafeAreaView, ScrollView, Text, TouchableOpacity, View,Image, StyleSheet } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Container } from '../constants/FeedStyle';
 import PostCard from '../components/PostCard';
@@ -10,12 +10,17 @@ import { AuthContext } from '../navigation/AuthProvider';
 import { useContext } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import InstaStory from 'react-native-insta-story';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+
 
 const HomeScreen = ({ navigation }) => {
+    
     const [posts, setPosts] = useState();
     const [loading, setLoading] = useState(true);
     const [deleted, setDeleted] = useState(false);
     const { user } = useContext(AuthContext);
+    const [storyData, setStoryData] = useState([]);
     const isFocused = useIsFocused();
     const fetchPosts = async () => {
         try {
@@ -39,14 +44,38 @@ const HomeScreen = ({ navigation }) => {
         }
 
     };
+    const fetchStoryData = async () => {
+        try {
+            const response = await fetch('http://10.0.2.2:3000/listStory', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ userId: user._id }),
+            });
 
+            if (response.ok) {
+                const data = await response.json();
+                setStoryData(data);
+                if (loading) {
+                    setLoading(false);
+                }
+            } else {
+                console.error('Error fetching story data');
+            }
+        } catch (error) {
+            console.error('Error fetching story data:', error);
+        }
+    };
     useEffect(() => {
 
         if (isFocused) {
             fetchPosts();
+            fetchStoryData();
         }
+        // navigation.addListener("focus", () => setLoading(!loading));
         setDeleted(false);
-    }, [isFocused]);
+    }, [isFocused,user]);
 
     const handleDelete = (postId) => {
         Alert.alert(
@@ -159,6 +188,14 @@ const HomeScreen = ({ navigation }) => {
     const handleUpdate = (postId) => {
         navigation.navigate('EditPost', { postId });
     };
+
+    const handleAddPostStory = () => {
+        navigation.navigate('AddStory')
+    }
+
+    const handleUserPressStory = (user) => {
+        navigation.navigate('UserStories', { user });
+    };
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} >
             {loading ? (
@@ -207,7 +244,42 @@ const HomeScreen = ({ navigation }) => {
                     </SkeletonPlaceholder>
                 </ScrollView>
             ) : (
-                <View style={{ paddingVertical: 3, paddingHorizontal: 6 }}>
+                
+                <ScrollView style={{ paddingVertical: 3, paddingHorizontal: 6,flex:1 }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', padding: 10 }}>
+                            {!loading ? (
+                            <View style={{ position: 'relative', top: -10 }}>
+                                <Image
+                                    source={{ uri: user ? user.userImg || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' : 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' }}
+                                    style={{ width: 65, height: 65, borderRadius: 65 / 2, borderColor: 'black', borderWidth: 2, opacity: 0.8 }} />
+                                <TouchableOpacity onPress={handleAddPostStory} style={{ marginLeft: 'auto', paddingHorizontal: 15 }}>
+                                    <MaterialCommunityIcons
+                                        name="camera-plus"
+                                        size={25}
+                                        color="black"
+                                        style={{
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            position: 'absolute',
+                                            top: -20
+                                        }}
+                                    />
+                                </TouchableOpacity>
+                            </View>):(
+                                null
+                            )}
+                            {!loading ? (
+                                <InstaStory
+                                    data={storyData}
+                                    duration={10}
+
+                                />
+                            ) : (
+                                <Text>Loading...</Text>
+                            )}
+
+
+                        </View>
                     <FlatList
                         data={posts}
                         renderItem={({ item }) => (
@@ -225,10 +297,19 @@ const HomeScreen = ({ navigation }) => {
                         showsVerticalScrollIndicator={false}
                     />
 
-                </View>
+                    </ScrollView>
             )}
         </SafeAreaView>
     );
 };
 
 export default HomeScreen;
+const styles = StyleSheet.create({
+    storyContainer: {
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        borderWidth: 2,
+        borderColor: 'black'
+    }
+});

@@ -15,22 +15,6 @@ const LoginScreen = ({ navigation }) => {
     const [isPasswordShown, setIsPasswordShown] = useState(true);
     const { login } = useContext(AuthContext);
     const [submitted, setSubmitted] = useState(false);
-
-    const [passwordError, setPasswordError] = useState('');
-
-   
-    const validatePassword = (password) => {
-        return password.length >= 6;
-    };
-    const handleValidation = () => {
-        if (!password) {
-            setPasswordError('Password is required');
-        } else if (!validatePassword(password)) {
-            setPasswordError('Password must be at least 6 characters long');
-        } else {
-            setPasswordError('');
-        }
-    };
     const handleSignIn = () => {
         setSubmitted(true);
         if (!email || !password) {
@@ -54,7 +38,7 @@ const LoginScreen = ({ navigation }) => {
                     iconType="mail"
                     keyboardType="email-address"
                     autoCapitalize="none"
-                    autoCorrect={false} onBlur={handleValidation}
+                    autoCorrect={false} 
                 />
                
             </View>
@@ -67,7 +51,7 @@ const LoginScreen = ({ navigation }) => {
                     onChangeText={(userPassword) => setPassword(userPassword)}
                     placeholderText="Password"
                     iconType="lock"
-                    secureTextEntry={isPasswordShown} onBlur={handleValidation}
+                    secureTextEntry={isPasswordShown}
                 />
                 <TouchableOpacity
                     onPress={() => setIsPasswordShown(!isPasswordShown)}
@@ -91,9 +75,9 @@ const LoginScreen = ({ navigation }) => {
             {submitted && !password && (
                 <Text style={styles.errorText}>Password is required</Text>
             )}
-            {passwordError.length > 0 && (
-                    <Text style={{ color: 'red',textAlign:'left' }}>{passwordError}</Text>
-                )}
+            {submitted && password && password.length < 6 && (
+                <Text style={styles.errorText}>Password must be at least 6 characters</Text>
+            )}
             <FormButton
                 buttonTitle="Sign In"
                 onPress={handleSignIn}

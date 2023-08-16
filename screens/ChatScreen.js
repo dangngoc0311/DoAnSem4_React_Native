@@ -111,88 +111,88 @@ const ChatScreen = ({ route }) => {
             setSelectedImg(imageUri)
         });
     }
-    const onSend = useCallback((messages = []) => {
-        // console.log(messages[0].user.img)
-        var img = messages[0].user.img;
-        if (img == null) {
-            var formdata = {
-                userId1: user._id,
-                userId2: user2._id,
-                content: messages[0].text
-            }
-            handlePostRequest(formdata)
-            setMessages((previousMessages) =>
-                GiftedChat.append(previousMessages, messages),
-            );
-        } else {
-            var formdata = {
-                userId1: user._id,
-                userId2: user2._id,
-                content: messages[0].text
-            }
-            // setMessages((previousMessages) =>
-            //     GiftedChat.append(previousMessages, messages),
-            // );
+    const onSend = useCallback(async (messages = []) => {
+        try {
+            const img = messages[0].user.img;
+            const content = messages[0].text;
+            let imageUrl = null;
 
-            const originalString = img;
-            const subString = 'file:///storage/emulated/0/Android/data/com.doansem4reactnative/files/Pictures/';
-            const startIndex = originalString.indexOf(subString);
-            const newImg = originalString.replace(subString, '');
-            if (img != null) {
-                postImg = 'http://10.0.2.2:3000/public/uploads/' + newImg;
-            }
-            var formdata2 = {
-                userId1: user._id,
-                userId2: user2._id,
-                content: postImg
-            }
-            console.log(formdata2)
-            const form = new FormData();
-            form.append('image', {
-                uri: img,
-                type: 'image/jpeg',
-                name: newImg,
-            });
-            try {
-                const response = fetch('http://10.0.2.2:3000/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
-                    body: form,
+            if (img) {
+                // Xử lý upload ảnh
+                const originalString = img;
+                const subString = 'file:///storage/emulated/0/Android/data/com.doansem4reactnative/files/Pictures/';
+                const startIndex = originalString.indexOf(subString);
+                const newImg = originalString.replace(subString, '');
+                imageUrl = 'http://10.0.2.2:3000/public/uploads/' + newImg;
+
+                const form = new FormData();
+                form.append('media', {
+                    uri: img,
+                    type: 'image/jpeg',
+                    name: newImg,
                 });
-            } catch (e) {
-                console.error('Error uploading image:', e);
+
+                try {
+                    const response = await fetch('http://10.0.2.2:3000/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'multipart/form-data',
+                        },
+                        body: form,
+                    });
+                } catch (e) {
+                    console.error('Error uploading image:', e);
+                }
             }
-            handlePostRequest(formdata2)
-            handlePostRequest(formdata)
-            const me = messages.map((message) => {
-                return {
-                    ...message,
+
+            const formdata = {
+                userId1: user._id,
+                userId2: user2._id,
+                content: content,
+            };
+
+            console.log("imageUrl : " +imageUrl);
+            if (imageUrl) {
+                const formdataWithImage = {
+                    ...formdata,
+                    content: imageUrl,
+                };
+                await handlePostRequest(formdataWithImage);
+            }
+
+            if (content) {
+                await handlePostRequest(formdata);
+            }
+
+            if (imageUrl) {
+                const imageMessage = {
                     _id: Math.round(Math.random() * 1000000),
-                }
-            });
-            const messageWithImage = messages.map((message) => {
-                message.text = "";
-                if (img) {
-                    return {
-                        ...message,
-                        image: img,
-                        _id: Math.round(Math.random() * 1000000),
-                    };
-                }
-                return message;
-            });
+                    createdAt: new Date(),
+                    user: messages[0].user,
+                    image: imageUrl,
+                };
+                setMessages((previousMessages) =>
+                    GiftedChat.append(previousMessages, [imageMessage])
+                );
+            }
 
-            setMessages((previousMessages) => GiftedChat.append(previousMessages, messageWithImage));
-            setMessages((previousMessages) => GiftedChat.append(previousMessages, me));
+            if (content) {
+                const textMessage = {
+                    _id: Math.round(Math.random() * 1000000),
+                    createdAt: new Date(),
+                    user: messages[0].user,
+                    text: content,
+                };
+                setMessages((previousMessages) =>
+                    GiftedChat.append(previousMessages, [textMessage])
+                );
+            }
             setSelectedImg(null);
-            img = null;
-
+        } catch (error) {
+            console.error('Error sending message:', error);
         }
-
-
     }, []);
+
     const renderSend = (props) => {
         return (
             <Send {...props}>
@@ -260,7 +260,16 @@ const ChatScreen = ({ route }) => {
             <FontAwesome name='angle-double-down' size={22} color='#333' />
         );
     }
-
+    const renderUserAvatar = (props) => {
+        return (
+            <View style={{ marginRight: 10 }}>
+                <Image
+                    source={{ uri: props.currentMessage.user.img || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' }}
+                    style={{ width: 40, height: 40, borderRadius: 20 }}
+                />
+            </View>
+        );
+    };
     return (
         <View style={{ flex: 1 }}>
             <GiftedChat
@@ -268,7 +277,7 @@ const ChatScreen = ({ route }) => {
                 onSend={(messages) => onSend(messages)}
                 user={{
                     _id: user._id,
-                    img: selectedImg
+                    img: selectedImg 
                 }}
 
                 renderBubble={renderBubble}
@@ -278,6 +287,7 @@ const ChatScreen = ({ route }) => {
                 renderMessageImage={renderMessageImage}
                 scrollToBottom
                 scrollToBottomComponent={scrollToBottomComponent}
+                renderAvatar={renderUserAvatar}
             />
             {selectedImg && (
                 <Image source={{ uri: selectedImg }} style={{ width: 100, height: 100 }} />

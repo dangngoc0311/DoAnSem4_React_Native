@@ -98,7 +98,7 @@ const EditProfileScreen = () => {
         const name = filename.split('.').slice(0, -1).join('.');
         filename = name + Date.now() + '.' + extension;
         const formData = new FormData();
-        formData.append('image', {
+        formData.append('media', {
             uri: uploadUri,
             type: 'image/jpeg',
             name: filename,
@@ -173,9 +173,7 @@ const EditProfileScreen = () => {
                             uri: image
                                 ? image
                                 : userData
-                                    ? userData.userImg ||
-                                    'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
-                                    : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
+                                    ? userData.userImg || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' : 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg'
                         }}
                         style={{ height: 90, width: 90, marginTop: 10 }}
                         imageStyle={{ borderRadius: 15 }}>

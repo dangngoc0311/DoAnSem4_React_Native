@@ -14,6 +14,7 @@ import { windowWidth } from '../constants/config';
 import { InputField, AddImage, InputWrapper, StatusWrapper, SubmitBtn, SubmitBtnText } from '../constants/PostStyle';
 import Menu, { MenuItem, MenuDivider, MenuTrigger, MenuOptions, MenuOption } from 'react-native-popup-menu';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import Video from 'react-native-video';
 
 const DetailPostScreen = ({ route, navigation, onPress }) => {
     const { postId } = route.params;
@@ -218,9 +219,8 @@ const DetailPostScreen = ({ route, navigation, onPress }) => {
                             <UserImg
                                 source={{
                                     uri: item
-                                        ? item.userImg ||
-                                        'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
-                                        : 'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg',
+                                        ? item.userImg
+                                        || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' : 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg'
                                 }}
                             />
                             <UserInfoText>
@@ -258,14 +258,24 @@ const DetailPostScreen = ({ route, navigation, onPress }) => {
            
             <PostText>{item.post}</PostText>
             {item.postImg != null ? (
-                item.postImg.map((imageUrl, index) => (
-                    <ProgressiveImage
-                        key={index}
-                        defaultImageSource={require('../assets/default-img.jpg')}
-                        source={{ uri: imageUrl }}
-                        style={{ width: '100%', height: 250 }}
-                        resizeMode="cover"
-                    />
+                item.postImg.map((mediaUrl, index) => (
+                    mediaUrl.endsWith('.mp4') ? (
+                        <Video
+                            key={index}
+                            source={{ uri: mediaUrl }}
+                            style={{ width: '100%', height: 250 }}
+                            resizeMode="cover"
+                            controls autoplay={false}
+                        />
+                    ) : (
+                        <ProgressiveImage
+                            key={index}
+                            defaultImageSource={require('../assets/default-img.jpg')}
+                            source={{ uri: mediaUrl }}
+                            style={{ width: '100%', height: 250 }}
+                            resizeMode="cover"
+                        />
+                    )
                 ))
             ) : (
                 <Divider />
@@ -321,9 +331,8 @@ const DetailPostScreen = ({ route, navigation, onPress }) => {
                                     style={styles.UserImg}
                                     source={{
                                         uri: comment
-                                            ? comment.userAvatar ||
-                                            'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg' :
-                                            'https://lh5.googleusercontent.com/-b0PKyNuQv5s/AAAAAAAAAAI/AAAAAAAAAAA/AMZuuclxAM4M1SCBGAO7Rp-QP6zgBEUkOQ/s96-c/photo.jpg'
+                                            ? comment.userAvatar
+                                            || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' : 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg'
                                     }}
                                 />
                                 <View style={styles.UserInfoText}>
@@ -446,7 +455,7 @@ const styles = StyleSheet.create({
     },
     UserImg: {
         width: 30,
-        heightt: 30,
+        height: 30,
         borderRadius: 15,
     },
     UserInfoText: {
