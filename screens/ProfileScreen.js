@@ -8,14 +8,16 @@ import PostCard from '../components/PostCard';
 import { useState } from 'react';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { Toast } from 'react-native-toast-message/lib/src/Toast';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+
 
 const ProfileScreen = ({ navigation, route }) => {
     const { user, logout } = useContext(AuthContext);
-
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [userData, setUserData] = useState(null);
     const [follow, setFollowing] = useState(false);
+   
     const fetchPosts = async () => {
         try {
             const list = [];
@@ -60,6 +62,7 @@ const ProfileScreen = ({ navigation, route }) => {
         getUser();
         fetchPosts();
         navigation.addListener("focus", () => setLoading(!loading));
+       
     }, [navigation, loading]);
 
     const deletePost = async (postId) => {
@@ -135,22 +138,12 @@ const ProfileScreen = ({ navigation, route }) => {
                 setPosts((prevPosts) =>
                     prevPosts.map((post) =>
                         post.id === postId
-                            ? { ...post, comments: [...post.comments, data.comment] }
+                            ? { ...post, comments: [...post.comments, data.comment], lastComment: data.comment }
                             : post
                     )
                 );
-                Toast.show({
-                    type: 'success',
-                    text1: 'Successfully!',
-                    visibilityTime: 1000,
-                });
             })
             .catch((error) => {
-                Toast.show({
-                    type: 'error',
-                    text1: 'Error adding comment',
-                    visibilityTime: 1000,
-                });
                 console.error('Error adding comment:', error);
             });
     }
@@ -232,15 +225,17 @@ const ProfileScreen = ({ navigation, route }) => {
         }
     };
     const handleChatNavigation = () => {
+        console.log("ok");
         // Get the 'userName' and 'userId' from the user data
-        const userName = userData.fname + ' ' + userData.lname;
-        const userId = userData._id;
-        var item = {
-            _id: userData._id,
-            fname: userData.fname,
-            lname: userData.lname,
-            userImg: userData.userImg
-        }
+        // const userName = userData.fname + ' ' + userData.lname;
+        // const userId = userData._id;
+        // var item = {
+        //     _id: userData._id,
+        //     fname: userData.fname,
+        //     lname: userData.lname,
+        //     userImg: userData.userImg
+        // }
+         var item = userData;
         console.log(item);
         // Navigate to 'ChatScreen' with the parameters
         navigation.navigate('Chat', item);
@@ -248,6 +243,14 @@ const ProfileScreen = ({ navigation, route }) => {
     const handleUpdate = (postId) => {
         navigation.navigate('EditPost', { postId });
     };
+    let followersColor = 'gray';
+    const followersCount = userData?.followers?.length || 0;
+    // Mặc định là màu xám
+    if (followersCount >= 3 && followersCount < 6) {
+        followersColor = 'gold'; // Màu vàng cho 5-9 followers
+    } else if (followersCount >= 6) {
+        followersColor = 'blue'; // Màu xanh dương cho 10 followers trở lên
+    }
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
             <ScrollView
@@ -258,8 +261,10 @@ const ProfileScreen = ({ navigation, route }) => {
                     style={styles.userImg}
                     source={{ uri: userData ? userData.userImg || 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' : 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg' }}
                 />
-                <Text style={styles.userName}>{userData ? userData.fname || 'Test' : 'Test'} {userData ? userData.lname || 'User' : 'User'}</Text>
-                {/* <Text>{route.params ? route.params.userId : user.uid}</Text> */}
+                <Text style={styles.userName}>
+                    {userData ? userData.fname || 'Test' : 'Test'} {userData ? userData.lname || 'User' : 'User'}
+                    <Ionicons name='checkmark-circle-sharp' size={22} color={followersColor}></Ionicons>
+                </Text>
                 <Text style={styles.aboutUser}>
                     {userData ? userData.about || 'No details added.' : ''}
                 </Text>
@@ -381,6 +386,8 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 10,
         marginBottom: 10,
+        display:'flex',
+        justifyContent:'space-between'
     },
     aboutUser: {
         fontSize: 12,
