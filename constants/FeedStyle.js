@@ -12,6 +12,8 @@ export const Card = styled.View`
     width: 100%;
     margin-bottom: 20px;
     border-radius: 10px;
+     border-bottom-color: #dddddd;
+    border-bottom-width: 1px;
 `;
 
 export const UserInfo = styled.View`

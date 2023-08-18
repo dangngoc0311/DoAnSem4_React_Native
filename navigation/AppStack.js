@@ -200,7 +200,7 @@ const AppStack = () => {
                 })}
             />
             <Tab.Screen
-                name="Messages"
+                name="Message"
                 component={MessageStack}
                 options={({ route }) => ({
                     tabBarVisible: getTabBarVisibility(route),

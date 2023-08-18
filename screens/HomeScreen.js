@@ -142,7 +142,7 @@ const HomeScreen = ({ navigation }) => {
                 setPosts((prevPosts) =>
                     prevPosts.map((post) =>
                         post.id === postId
-                            ? { ...post, comments: [...post.comments, data.comment] }
+                            ? { ...post, comments: [...post.comments, data.comment], lastComment: data.comment }
                             : post
                     )
                 );
@@ -193,9 +193,6 @@ const HomeScreen = ({ navigation }) => {
         navigation.navigate('AddStory')
     }
 
-    const handleUserPressStory = (user) => {
-        navigation.navigate('UserStories', { user });
-    };
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} >
             {loading ? (

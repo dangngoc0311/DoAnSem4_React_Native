@@ -5,7 +5,7 @@ import { AuthContext } from '../navigation/AuthProvider';
 import { useState } from 'react';
 import { useEffect } from 'react';
 import { Card, Divider, Interaction, InteractionText, InteractionWrapper, PostText, PostTime, UserImg, UserInfo, UserInfoText, UserName } from '../constants/FeedStyle';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ProgressiveImage from './ProgressiveImage';
 import moment from 'moment/moment';
 import { useNavigation } from '@react-navigation/native';
@@ -16,27 +16,26 @@ import Menu, { MenuItem, MenuDivider, MenuTrigger, MenuOptions, MenuOption } fro
 import Video from 'react-native-video';
 const PostCard = ({ item, onDelete, onPress, onLike, onComment, onUpdate }) => {
     const { user, logout } = useContext(AuthContext);
-    const [userData, setUserData] = useState(null);
+    // const [userData, setUserData] = useState(null);
     const [isOpenDialogCmt, setOpenDialogCmt] = useState(false)
     const [cmt, setCmt] = useState('')
     const navigation = useNavigation();
-    const [isVideoPlaying, setIsVideoPlaying] = useState(false);
-    const getUser = async () => {
-        fetch(`http://10.0.2.2:3000/users/${route.params ? route.params.userId : user._id}`)
-            .then((response) => response.json())
-            .then((data) => {
-                setUserData(data);
-            })
-            .catch((error) => {
-                console.error('Error fetching user data:', error);
-            });
-    };
+    // const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+    // const getUser = async () => {
+    //     fetch(`http://10.0.2.2:3000/users/${route.params ? route.params.userId : user._id}`)
+    //         .then((response) => response.json())
+    //         .then((data) => {
+    //             setUserData(data);
+    //         })
+    //         .catch((error) => {
+    //             console.error('Error fetching user data:', error);
+    //         });
+    // };
     const handlePostPress = (postId) => {
         navigation.navigate('DetailPost', { postId: postId, navigation });
     };
 
     useEffect(() => {
-        getUser();
     }, []);
     return (
         <Card key={item.id} >
@@ -54,11 +53,9 @@ const PostCard = ({ item, onDelete, onPress, onLike, onComment, onUpdate }) => {
                                 }}
                             />
                             <UserInfoText>
-                                <TouchableOpacity onPress={onPress}>
                                     <UserName>
                                         {item ? item.userName || 'User' : 'User'}
                                     </UserName>
-                                </TouchableOpacity>
                                 <PostTime>{moment(item.postTime).fromNow()}</PostTime>
                             </UserInfoText>
                         </UserInfo>
@@ -128,6 +125,43 @@ const PostCard = ({ item, onDelete, onPress, onLike, onComment, onUpdate }) => {
                     </TouchableOpacity>
                 </Interaction>
             </InteractionWrapper>
+            {item.lastComment ? (
+                <View style={styles.LastComment}>
+                    <View style={styles.UserInfo}>
+                        <Image
+                            style={styles.UserImg}
+                            source={{
+                                uri: item.lastComment && item.lastComment.userAvatar
+                                    ? item.lastComment.userAvatar : 'https://t4.ftcdn.net/jpg/00/64/67/27/360_F_64672736_U5kpdGs9keUll8CRQ3p3YaEv2M6qkVY5.jpg'
+                            }}
+                        />
+                        <View style={styles.UserInfoText}>
+                            <UserName>{item.lastComment ? item.lastComment.userName || 'User' : 'User'}</UserName>
+                            <PostTime>{item.lastComment ? moment(item.lastComment.cmtDate).fromNow() : ''}</PostTime>
+                        </View>
+                        <>
+                            <PostText style={{ width: 275 }}>{item.lastComment ? item.lastComment.content : ''}</PostText>
+                            {item.lastComment && user._id == item.lastComment.userId ? (
+                                <Menu style={{ alignItems: 'flex-end' }}>
+                                    <MenuTrigger customStyles={{ triggerText: { fontSize: 20 } }}>
+                                        <Ionicons name="ellipsis-vertical" size={22} />
+                                    </MenuTrigger>
+                                    <MenuOptions >
+                                        <MenuOption onSelect={() => handleDelCmt(item.lastComment._id)} style={{ alignItems: 'center', flexDirection: 'row' }}>
+                                            <Ionicons name="trash-bin-outline" size={18} color={'red'} />
+                                            <Text style={{ color: 'red', paddingLeft: 10 }}>Delete</Text>
+                                        </MenuOption>
+                                    </MenuOptions>
+                                </Menu>
+                            ) : null}
+                        </>
+
+                    </View>
+                </View>
+            ) : (
+                null
+            )}
+
             <View style={styles.container}>
                 {(isOpenDialogCmt) ? (
                     <Dialog.Container visible={true}>
@@ -167,4 +201,27 @@ const styles = StyleSheet.create({
         alignContent: 'center',
         width: windowWidth,
     },
+    UserInfo: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    padding: 10,
+        backgroundColor: '#FCFCFC',
+    borderColor: '#ccc',
+    borderWidth: 0.5,
+    alignItems: 'center',
+    borderRadius:20
+},
+    UserImg: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+},
+    UserInfoText: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    marginLeft: 10
+},
+LastComment:{
+// paddingHorizontal:10,
+}
 })
